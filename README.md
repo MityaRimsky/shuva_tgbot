@@ -1,4 +1,4 @@
-# Sefaria ChatBot
+# Shuva ChatBot
 
 Чат-бот, который использует API OpenRouter для генерации ответов и API Sefaria для получения знаний о еврейских текстах и традициях.
 
