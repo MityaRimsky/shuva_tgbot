@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHUVA</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@300;400;500;600&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a7aff;
+            --sidebar-bg: #1a1a2e;
+            --sidebar-hover: #2a2a3e;
+            --text-color: #333;
+            --text-light: #666;
+            --bg-color: #fff;
+            --message-user-bg: #f0faff;
+            --message-bot-bg: #f5f5f5;
+            --border-color: #e0e0e0;
+            --border-radius: 24px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Golos Text', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        /* Боковая панель (только для десктопа) */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo-icon {
+            width: 30px;
+            height: 30px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .new-chat-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;
+            transition: background-color 0.2s;
+        }
+        
+        .new-chat-btn:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        .chat-history {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .chat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.2s;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .chat-item:hover {
+            background-color: var(--sidebar-hover);
+        }
+        
+        .chat-item.active {
+            background-color: var(--sidebar-hover);
+            color: white;
+        }
+        
+        /* Мобильная навигация */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 15px;
+            background-color: var(--bg-color);
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mobile-nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .mobile-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+        
+        .mobile-actions {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .mobile-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f5;
+            color: var(--text-color);
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .mobile-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        /* Мобильное меню истории */
+        .mobile-history {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 80%;
+            max-width: 300px;
+            background-color: var(--sidebar-bg);
+            z-index: 200;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            color: white;
+        }
+        
+        .mobile-history.active {
+            transform: translateX(0);
+        }
+        
+        .mobile-history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .mobile-history-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        
+        /* Основной контент */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            background-color: #f9f9f9;
+        }
+        
+        /* Область сообщений */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            scroll-behavior: smooth;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Стили для сообщений в виде пузырей */
+        .message-row {
+            display: flex;
+            margin-bottom: 16px;
+            position: relative;
+        }
+        
+        .message-row.user {
+            justify-content: flex-end;
+        }
+        
+        .message-row.bot {
+            justify-content: flex-start;
+        }
+        
+        .message-bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: var(--border-radius);
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+        
+        .user .message-bubble {
+            background-color: var(--primary-color);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .bot .message-bubble {
+            background-color: white;
+            color: var(--text-color);
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 8px;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .user .message-avatar {
+            display: none;
+        }
+        
+        .bot .message-avatar {
+            background-color: var(--sidebar-bg); /* Черный цвет для аватара бота */
+        }
+        
+        /* Лоадер для ожидания ответа бота */
+        .typing-indicator {
+            display: none;
+            margin-bottom: 16px;
+        }
+        
+        .typing-indicator .message-bubble {
+            display: flex;
+            align-items: center;
+            min-width: 60px;
+        }
+        
+        .typing-dots {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #aaa;
+            border-radius: 50%;
+            animation: typingAnimation 1.5s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+        
+        @keyframes typingAnimation {
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(-5px);
+                opacity: 1;
+            }
+        }
+        
+        /* Стили для цитат из Sefaria */
+        .sefaria-quote {
+            background-color: #fff8e1;
+            border-left: 3px solid var(--primary-color);
+            padding: 10px 12px;
+            margin: 10px 0;
+            font-style: italic;
+            border-radius: 12px;
+        }
+        
+        .sefaria-ref {
+            font-weight: 500;
+            color: #5d4037;
+        }
+        
+        /* Модуль ввода */
+        .input-container {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-color);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .input-wrapper {
+            max-width: 800px;
+            width: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        #message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 0.95rem;
+            outline: none;
+            resize: none;
+            min-height: 56px;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            transition: border 0.2s, box-shadow 0.2s;
+        }
+        
+        #message-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 122, 255, 0.1);
+        }
+        
+        #send-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            width: 56px;
+            height: 56px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, transform 0.2s;
+            flex-shrink: 0;
+        }
+        
+        #send-button:hover {
+            background-color: #3a6ae6;
+        }
+        
+        #send-button:active {
+            transform: scale(0.95);
+        }
+        
+        .input-info {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        /* Сообщение об ошибке */
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 10px 16px;
+            border-radius: var(--border-radius);
+            margin: 10px 20px;
+            font-size: 0.9rem;
+            display: none;
+            max-width: 800px;
+            margin: 10px auto;
+        }
+        
+        /* Адаптивный дизайн */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .mobile-nav {
+                display: block;
+            }
+            
+            .main-content {
+                padding-top: 70px; /* Учитываем высоту мобильной навигации */
+            }
+            
+            .input-container {
+                padding: 15px;
+            }
+            
+            .message-bubble {
+                max-width: 85%;
+            }
+        }
+        
+        /* Затемнение фона при открытом мобильном меню */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 150;
+            display: none;
+        }
+        
+        .overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Боковая панель (только для десктопа) -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="/static/images/logo.svg" alt="Sefaria Logo" class="logo-image" style="width: 30px; height: 30px; border-radius: 50%;">
+                <span>SHUVA</span>
+            </div>
+        </div>
+        <div class="sidebar-content">
+            <button class="new-chat-btn" id="desktop-new-chat">
+                <i class="fas fa-plus"></i>
+                Новый чат
+            </button>
+            <div class="chat-history" id="desktop-history">
+                <!-- История чатов будет добавлена через JavaScript -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Мобильная навигация -->
+    <div class="mobile-nav">
+        <div class="mobile-nav-content">
+            <div class="mobile-logo">
+                <img src="/static/images/logo.svg" alt="Sefaria Logo" class="logo-image" style="width: 30px; height: 30px; border-radius: 50%;">
+                <span>SHUVA</span>
+            </div>
+            <div class="mobile-actions">
+                <button class="mobile-btn" id="mobile-new-chat">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button class="mobile-btn" id="mobile-history-btn">
+                    <i class="fas fa-history"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Мобильное меню истории -->
+    <div class="mobile-history" id="mobile-history-menu">
+        <div class="mobile-history-header">
+            <h3>История чатов</h3>
+            <button class="mobile-history-close" id="mobile-history-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chat-history" id="mobile-history-list">
+            <!-- История чатов будет добавлена через JavaScript -->
+        </div>
+    </div>
+    
+    <!-- Затемнение фона -->
+    <div class="overlay" id="overlay"></div>
+    
+    <!-- Основной контент -->
+    <div class="main-content">
+        <div class="error" id="error-message"></div>
+        
+        <div class="chat-container" id="chat-container">
+            <!-- Сообщения будут добавлены через JavaScript -->
+        </div>
+        
+        <!-- Индикатор набора текста ботом -->
+        <div class="typing-indicator" id="typing-indicator">
+            <div class="message-row bot">
+                <div class="message-avatar">
+                    <img src="/static/images/logo.svg" alt="Sefaria Logo" style="width: 100%; height: 100%; border-radius: 50%;">
+                </div>
+                <div class="message-bubble">
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <div class="input-wrapper">
+                <textarea id="message-input" placeholder="Введите ваш вопрос..." rows="1"></textarea>
+                <button id="send-button">
+                    <i class="fas fa-paper-plane" id="send-icon"></i>
+                    <i class="fas fa-stop" id="stop-icon" style="display: none;"></i>
+                </button>
+            </div>
+            <div class="input-info">
+                Powered by Taiga Performance
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatContainer = document.getElementById('chat-container');
+            const messageInput = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+            const sendIcon = document.getElementById('send-icon');
+            const stopIcon = document.getElementById('stop-icon');
+            const errorMessage = document.getElementById('error-message');
+            const desktopNewChat = document.getElementById('desktop-new-chat');
+            const mobileNewChat = document.getElementById('mobile-new-chat');
+            const mobileHistoryBtn = document.getElementById('mobile-history-btn');
+            const mobileHistoryMenu = document.getElementById('mobile-history-menu');
+            const mobileHistoryClose = document.getElementById('mobile-history-close');
+            const overlay = document.getElementById('overlay');
+            const typingIndicator = document.getElementById('typing-indicator');
+            
+            let controller = null; // Для AbortController
+            let chatHistory = []; // Для хранения истории чатов
+            let currentChatId = 'chat-' + Date.now(); // Уникальный ID для текущего чата
+            
+            // Автоматическое изменение высоты текстового поля
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+            
+            // Функция для добавления сообщения в чат
+            function addMessage(message, isUser) {
+                const messageRow = document.createElement('div');
+                messageRow.classList.add('message-row');
+                messageRow.classList.add(isUser ? 'user' : 'bot');
+                
+                let html = '';
+                
+                if (!isUser) {
+                    html += '<div class="message-avatar"><img src="/static/images/logo.svg" alt="Sefaria Logo" style="width: 100%; height: 100%; border-radius: 50%;"></div>';
+                }
+                
+                html += '<div class="message-bubble">';
+                
+                // Обработка форматирования для сообщений бота
+                if (!isUser) {
+                    // Заменяем ссылки на тексты Sefaria специальным форматированием
+                    message = message.replace(/📜\s+([^:]+)(?:\s+-\s+([^\n]+))?/g, '<div class="sefaria-quote"><span class="sefaria-ref">📜 $1</span>$2</div>');
+                }
+                
+                html += message;
+                html += '</div>';
+                
+                messageRow.innerHTML = html;
+                chatContainer.appendChild(messageRow);
+                
+                // Прокрутка вниз
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // Сохраняем сообщение в истории текущего чата
+                chatHistory.push({
+                    chatId: currentChatId,
+                    isUser: isUser,
+                    message: message,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Сохраняем историю в localStorage
+                saveHistory();
+            }
+            
+            // Функция для сохранения истории в localStorage
+            function saveHistory() {
+                localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+            }
+            
+            // Функция для загрузки истории из localStorage
+            function loadHistory() {
+                const savedHistory = localStorage.getItem('chatHistory');
+                if (savedHistory) {
+                    chatHistory = JSON.parse(savedHistory);
+                    
+                    // Получаем уникальные ID чатов
+                    const chatIds = [...new Set(chatHistory.map(item => item.chatId))];
+                    
+                    // Если есть сохраненные чаты, загружаем последний
+                    if (chatIds.length > 0) {
+                        currentChatId = chatIds[chatIds.length - 1];
+                        loadChat(currentChatId);
+                        
+                        // Обновляем список чатов
+                        updateChatList(chatIds);
+                    }
+                }
+            }
+            
+            // Функция для загрузки конкретного чата
+            function loadChat(chatId) {
+                // Очищаем контейнер чата
+                chatContainer.innerHTML = '';
+                
+                // Загружаем сообщения выбранного чата
+                const chatMessages = chatHistory.filter(item => item.chatId === chatId);
+                
+                // Добавляем сообщения в чат
+                chatMessages.forEach(item => {
+                    addMessage(item.message, item.isUser);
+                });
+                
+                // Обновляем текущий ID чата
+                currentChatId = chatId;
+                
+                // Обновляем активный элемент в списке чатов
+                document.querySelectorAll('.chat-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.chatId === chatId) {
+                        item.classList.add('active');
+                    }
+                });
+                
+                // Закрываем мобильное меню истории
+                closeMobileHistory();
+            }
+            
+            // Функция для обновления списка чатов
+            function updateChatList(chatIds) {
+                const desktopHistory = document.getElementById('desktop-history');
+                const mobileHistoryList = document.getElementById('mobile-history-list');
+                
+                // Очищаем списки
+                desktopHistory.innerHTML = '';
+                mobileHistoryList.innerHTML = '';
+                
+                // Добавляем чаты в списки
+                chatIds.forEach((chatId, index) => {
+                    // Находим первое сообщение пользователя в чате для названия
+                    const firstUserMessage = chatHistory.find(item => item.chatId === chatId && item.isUser);
+                    const chatName = firstUserMessage 
+                        ? firstUserMessage.message.substring(0, 20) + (firstUserMessage.message.length > 20 ? '...' : '')
+                        : `Чат ${index + 1}`;
+                    
+                    // Создаем элемент для десктопного списка
+                    const desktopItem = document.createElement('div');
+                    desktopItem.classList.add('chat-item');
+                    desktopItem.dataset.chatId = chatId;
+                    if (chatId === currentChatId) desktopItem.classList.add('active');
+                    desktopItem.innerHTML = `
+                        <i class="fas fa-comment"></i>
+                        <span>${chatName}</span>
+                    `;
+                    desktopItem.addEventListener('click', () => loadChat(chatId));
+                    desktopHistory.appendChild(desktopItem);
+                    
+                    // Создаем элемент для мобильного списка
+                    const mobileItem = document.createElement('div');
+                    mobileItem.classList.add('chat-item');
+                    mobileItem.dataset.chatId = chatId;
+                    if (chatId === currentChatId) mobileItem.classList.add('active');
+                    mobileItem.innerHTML = `
+                        <i class="fas fa-comment"></i>
+                        <span>${chatName}</span>
+                    `;
+                    mobileItem.addEventListener('click', () => loadChat(chatId));
+                    mobileHistoryList.appendChild(mobileItem);
+                });
+            }
+            
+            // Функция для создания нового чата
+            function createNewChat() {
+                // Проверяем, пустой ли текущий чат
+                const currentChatMessages = chatHistory.filter(item => item.chatId === currentChatId);
+                if (currentChatMessages.length === 0) {
+                    // Если текущий чат пустой, ничего не делаем
+                    return;
+                }
+                
+                // Создаем новый ID чата
+                currentChatId = 'chat-' + Date.now();
+                
+                // Очищаем контейнер чата
+                chatContainer.innerHTML = '';
+                
+                // Обновляем список чатов
+                const chatIds = [...new Set(chatHistory.map(item => item.chatId))];
+                updateChatList([...chatIds, currentChatId]);
+                
+                // Закрываем мобильное меню истории
+                closeMobileHistory();
+            }
+            
+            // Функция для переключения состояния кнопки и индикатора набора
+            function toggleLoadingState(isLoading) {
+                if (isLoading) {
+                    sendIcon.style.display = 'none';
+                    stopIcon.style.display = 'inline-block';
+                    sendButton.style.backgroundColor = '#e53935'; // Красный цвет для кнопки стоп
+                    typingIndicator.style.display = 'block';
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                } else {
+                    sendIcon.style.display = 'inline-block';
+                    stopIcon.style.display = 'none';
+                    sendButton.style.backgroundColor = ''; // Возвращаем исходный цвет
+                    typingIndicator.style.display = 'none';
+                }
+            }
+            
+            // Функция для отправки сообщения
+            async function sendMessage() {
+                const message = messageInput.value.trim();
+                if (!message) return;
+                
+                // Добавляем сообщение пользователя в чат
+                addMessage(message, true);
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                
+                // Показываем индикатор загрузки
+                toggleLoadingState(true);
+                errorMessage.style.display = 'none';
+                
+                // Создаем новый AbortController
+                controller = new AbortController();
+                
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ query: message }),
+                        signal: controller.signal
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        // Добавляем ответ бота в чат
+                        addMessage(data.response, false);
+                        
+                        // Обновляем список чатов (название может измениться)
+                        const chatIds = [...new Set(chatHistory.map(item => item.chatId))];
+                        updateChatList(chatIds);
+                    } else {
+                        // Показываем сообщение об ошибке
+                        errorMessage.textContent = data.error || 'Произошла ошибка при обработке запроса';
+                        errorMessage.style.display = 'block';
+                    }
+                } catch (error) {
+                    // Проверяем, была ли операция прервана намеренно
+                    if (error.name !== 'AbortError') {
+                        // Показываем сообщение об ошибке
+                        errorMessage.textContent = 'Не удалось подключиться к серверу';
+                        errorMessage.style.display = 'block';
+                    }
+                } finally {
+                    // Сбрасываем контроллер и индикатор загрузки
+                    controller = null;
+                    toggleLoadingState(false);
+                }
+            }
+            
+            // Функция для открытия мобильного меню истории
+            function openMobileHistory() {
+                mobileHistoryMenu.classList.add('active');
+                overlay.classList.add('active');
+            }
+            
+            // Функция для закрытия мобильного меню истории
+            function closeMobileHistory() {
+                mobileHistoryMenu.classList.remove('active');
+                overlay.classList.remove('active');
+            }
+            
+            // Обработчики событий
+            sendButton.addEventListener('click', function() {
+                if (controller) {
+                    // Если запрос уже идет, останавливаем его
+                    controller.abort();
+                    controller = null;
+                    toggleLoadingState(false);
+                } else {
+                    // Иначе отправляем новое сообщение
+                    sendMessage();
+                }
+            });
+            
+            messageInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            desktopNewChat.addEventListener('click', createNewChat);
+            mobileNewChat.addEventListener('click', createNewChat);
+            
+            mobileHistoryBtn.addEventListener('click', openMobileHistory);
+            mobileHistoryClose.addEventListener('click', closeMobileHistory);
+            overlay.addEventListener('click', closeMobileHistory);
+            
+            // Загружаем историю при загрузке страницы
+            loadHistory();
+        });
+    </script>

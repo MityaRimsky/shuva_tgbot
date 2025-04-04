@@ -1,0 +1,30 @@
+# Переменные окружения
+.env
+
+# Кэш Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Виртуальное окружение
+venv/
+env/
+ENV/
+
+# Дистрибутивы
+dist/
+build/
+*.egg-info/
+
+# Логи
+*.log
+
+# Файлы IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Файлы операционной системы
+.DS_Store
+Thumbs.db
