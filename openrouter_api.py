@@ -17,7 +17,7 @@ class OpenRouterAPI:
             "Content-Type": "application/json"
         }
     
-    def generate_response(self, prompt, context=None, model="openai/gpt-3.5-turbo"):
+    def generate_response(self, prompt, context=None, model="meta-llama/llama-4-maverick:free"):
         """
         Генерирует ответ на основе промпта и контекста с использованием указанной модели.
         
