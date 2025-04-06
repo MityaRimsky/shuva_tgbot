@@ -614,6 +614,16 @@
                 this.style.height = (this.scrollHeight) + 'px';
             });
             
+            // Функция для прокрутки чата вниз
+            function scrollChatToBottom() {
+                setTimeout(() => {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    // Также прокручиваем основной контейнер, если он имеет прокрутку
+                    const mainContent = document.querySelector('.main-content');
+                    mainContent.scrollTop = mainContent.scrollHeight;
+                }, 100); // Небольшая задержка для гарантии завершения рендеринга
+            }
+            
             // Функция для добавления сообщения в чат
             function addMessage(message, isUser) {
                 const messageRow = document.createElement('div');
@@ -640,8 +650,8 @@
                 messageRow.innerHTML = html;
                 chatContainer.appendChild(messageRow);
                 
-                // Прокрутка вниз
-                chatContainer.scrollTop = chatContainer.scrollHeight;
+                // Прокрутка вниз с небольшой задержкой
+                scrollChatToBottom();
                 
                 // Сохраняем сообщение в истории текущего чата
                 chatHistory.push({
@@ -706,6 +716,9 @@
                 
                 // Закрываем мобильное меню истории
                 closeMobileHistory();
+                
+                // Прокручиваем чат вниз после загрузки
+                scrollChatToBottom();
             }
             
             // Функция для обновления списка чатов
@@ -866,6 +879,9 @@
                         // Обновляем список чатов (название может измениться)
                         const chatIds = [...new Set(chatHistory.map(item => item.chatId))];
                         updateChatList(chatIds);
+                        
+                        // Дополнительная прокрутка вниз после добавления ответа бота
+                        scrollChatToBottom();
                     } else {
                         // Показываем сообщение об ошибке
                         errorMessage.textContent = data.error || 'Произошла ошибка при обработке запроса';
