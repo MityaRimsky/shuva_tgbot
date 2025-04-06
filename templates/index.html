@@ -9,15 +9,15 @@
     <style>
         :root {
             --primary-color: #4a7aff;
-            --sidebar-bg: #1a1a2e;
-            --sidebar-hover: #2a2a3e;
+            --sidebar-bg: #fafbff;
+            --sidebar-hover: #f3f6ff;
             --text-color: #333;
-            --text-light: #666;
+            --text-light: #727272;
             --bg-color: #fff;
             --message-user-bg: #f0faff;
             --message-bot-bg: #f5f5f5;
             --border-color: #e0e0e0;
-            --border-radius: 24px;
+            --border-radius: 32px;
         }
         
         * {
@@ -41,7 +41,7 @@
         .sidebar {
             width: 260px;
             background-color: var(--sidebar-bg);
-            color: white;
+            color: var(--text-color);
             display: flex;
             flex-direction: column;
             height: 100vh;
@@ -49,7 +49,7 @@
         
         .sidebar-header {
             padding: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.01);
             display: flex;
             align-items: center;
         }
@@ -83,19 +83,20 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
+            background-color: rgba(74, 122, 255, 0);
+            border: 1px solid rgba(74, 122, 255, 0.5);
+            color: var(--primary-color);
             padding: 10px 15px;
             border-radius: var(--border-radius);
             cursor: pointer;
             width: 100%;
+            margin-top: 15px;
             margin-bottom: 15px;
             transition: background-color 0.2s;
         }
         
         .new-chat-btn:hover {
-            background-color: rgba(255, 255, 255, 0.15);
+            background-color: rgba(74, 122, 255, 0.1);
         }
         
         .chat-history {
@@ -112,7 +113,7 @@
             border-radius: var(--border-radius);
             cursor: pointer;
             transition: background-color 0.2s;
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--text-light);
             font-size: 0.9rem;
             white-space: nowrap;
             overflow: hidden;
@@ -125,7 +126,7 @@
         
         .chat-item.active {
             background-color: var(--sidebar-hover);
-            color: white;
+            color: var(--text-light);
         }
         
         /* Мобильная навигация */
@@ -136,9 +137,8 @@
             left: 0;
             right: 0;
             padding: 15px;
-            background-color: var(--bg-color);
+            background-color: var(--sidebar-bg);
             z-index: 100;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
         
         .mobile-nav-content {
@@ -166,7 +166,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #f5f5f5;
+            background-color: var(--sidebar-hover);
             color: var(--text-color);
             border: none;
             cursor: pointer;
@@ -174,7 +174,7 @@
         }
         
         .mobile-btn:hover {
-            background-color: #e0e0e0;
+            background-color: rgba(74, 122, 255, 0.1);
         }
         
         /* Мобильное меню истории */
@@ -192,7 +192,8 @@
             display: flex;
             flex-direction: column;
             padding: 20px;
-            color: white;
+            color: var(--text-color);
+            
         }
         
         .mobile-history.active {
@@ -209,7 +210,7 @@
         .mobile-history-close {
             background: none;
             border: none;
-            color: white;
+            color: var(--text-color);
             font-size: 1.2rem;
             cursor: pointer;
         }
@@ -221,17 +222,21 @@
             flex-direction: column;
             height: 100vh;
             position: relative;
-            background-color: #f9f9f9;
+            background-color: #fff;
+            overflow-y: auto;
+            z-index: 1;
         }
         
         /* Область сообщений */
         .chat-container {
             flex: 1;
-            overflow-y: auto;
-            padding: 20px;
+            padding-top: 24px;
             scroll-behavior: smooth;
             display: flex;
             flex-direction: column;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
         }
         
         /* Стили для сообщений в виде пузырей */
@@ -239,6 +244,7 @@
             display: flex;
             margin-bottom: 16px;
             position: relative;
+            padding: 0 16px;
         }
         
         .message-row.user {
@@ -254,21 +260,22 @@
             padding: 12px 16px;
             border-radius: var(--border-radius);
             position: relative;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             line-height: 1.5;
             font-size: 0.95rem;
         }
         
         .user .message-bubble {
-            background-color: var(--primary-color);
-            color: white;
+            background-color: var(--sidebar-hover);
+            color: var(--text-color);
             border-bottom-right-radius: 4px;
         }
         
         .bot .message-bubble {
-            background-color: white;
+            background-color: transparent;
             color: var(--text-color);
-            border-bottom-left-radius: 4px;
+            border-bottom-left-radius: 0;
+            box-shadow: none;
+            padding-left: 0;
         }
         
         .message-avatar {
@@ -290,13 +297,14 @@
         }
         
         .bot .message-avatar {
-            background-color: var(--sidebar-bg); /* Черный цвет для аватара бота */
+            background-color: transparent;
         }
         
         /* Лоадер для ожидания ответа бота */
         .typing-indicator {
             display: none;
             margin-bottom: 16px;
+            position: relative;
         }
         
         .typing-indicator .message-bubble {
@@ -364,7 +372,9 @@
             flex-direction: column;
             align-items: center;
             background-color: var(--bg-color);
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
         }
         
         .input-wrapper {
@@ -553,13 +563,13 @@
                         <div class="typing-dot"></div>
                         <div class="typing-dot"></div>
                     </div>
-                </div>
+            </div>
             </div>
         </div>
         
         <div class="input-container">
             <div class="input-wrapper">
-                <textarea id="message-input" placeholder="Введите ваш вопрос..." rows="1"></textarea>
+                <textarea id="message-input" placeholder="Спросите что-нибудь..." rows="1"></textarea>
                 <button id="send-button">
                     <i class="fas fa-paper-plane" id="send-icon"></i>
                     <i class="fas fa-stop" id="stop-icon" style="display: none;"></i>
@@ -764,7 +774,10 @@
                     stopIcon.style.display = 'inline-block';
                     sendButton.style.backgroundColor = '#e53935'; // Красный цвет для кнопки стоп
                     typingIndicator.style.display = 'block';
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    
+                    // Прокручиваем к индикатору загрузки
+                    const mainContent = document.querySelector('.main-content');
+                    mainContent.scrollTop = mainContent.scrollHeight;
                 } else {
                     sendIcon.style.display = 'inline-block';
                     stopIcon.style.display = 'none';
@@ -871,3 +884,5 @@
             loadHistory();
         });
     </script>
+</body>
+</html>
