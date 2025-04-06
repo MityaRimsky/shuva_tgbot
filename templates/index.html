@@ -773,7 +773,36 @@
                     sendIcon.style.display = 'none';
                     stopIcon.style.display = 'inline-block';
                     sendButton.style.backgroundColor = '#e53935'; // Красный цвет для кнопки стоп
-                    typingIndicator.style.display = 'block';
+                    
+                    // Создаем и добавляем индикатор загрузки в конец контейнера сообщений
+                    const typingIndicatorHTML = `
+                        <div class="typing-indicator" id="typing-indicator-inline" style="display: block;">
+                            <div class="message-row bot">
+                                <div class="message-avatar">
+                                    <img src="/static/images/logo.svg" alt="Sefaria Logo" style="width: 100%; height: 100%; border-radius: 50%;">
+                                </div>
+                                <div class="message-bubble">
+                                    <div class="typing-dots">
+                                        <div class="typing-dot"></div>
+                                        <div class="typing-dot"></div>
+                                        <div class="typing-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Удаляем существующий встроенный индикатор, если он есть
+                    const existingInlineIndicator = document.getElementById('typing-indicator-inline');
+                    if (existingInlineIndicator) {
+                        existingInlineIndicator.remove();
+                    }
+                    
+                    // Добавляем индикатор в конец контейнера сообщений
+                    chatContainer.insertAdjacentHTML('beforeend', typingIndicatorHTML);
+                    
+                    // Скрываем оригинальный индикатор
+                    typingIndicator.style.display = 'none';
                     
                     // Прокручиваем к индикатору загрузки
                     const mainContent = document.querySelector('.main-content');
@@ -782,6 +811,14 @@
                     sendIcon.style.display = 'inline-block';
                     stopIcon.style.display = 'none';
                     sendButton.style.backgroundColor = ''; // Возвращаем исходный цвет
+                    
+                    // Удаляем встроенный индикатор загрузки
+                    const inlineTypingIndicator = document.getElementById('typing-indicator-inline');
+                    if (inlineTypingIndicator) {
+                        inlineTypingIndicator.remove();
+                    }
+                    
+                    // Скрываем оригинальный индикатор
                     typingIndicator.style.display = 'none';
                 }
             }
