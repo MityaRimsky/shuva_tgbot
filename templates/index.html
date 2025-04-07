@@ -245,6 +245,31 @@
             width: 100%;
         }
         
+        /* Приветственное сообщение */
+        .welcome-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            height: 100%;
+            padding: 20px;
+            color: var(--text-light);
+        }
+        
+        .welcome-icon {
+            width: 32px;
+            height: 32px;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+        
+        .welcome-message h2 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        
         /* Стили для сообщений в виде пузырей */
         .message-row {
             display: flex;
@@ -556,6 +581,12 @@
         
         <div class="chat-container" id="chat-container">
             <!-- Сообщения будут добавлены через JavaScript -->
+            <div class="welcome-message" id="welcome-message">
+                <div class="welcome-icon">
+                    <img src="/static/images/logo.svg" alt="Sefaria Logo" style="width: 100%; height: 100%; border-radius: 50%;">
+                </div>
+                <h2>Чем могу вам помочь?</h2>
+            </div>
         </div>
         
         <!-- Индикатор набора текста ботом -->
@@ -603,6 +634,7 @@
             const mobileHistoryClose = document.getElementById('mobile-history-close');
             const overlay = document.getElementById('overlay');
             const typingIndicator = document.getElementById('typing-indicator');
+            const welcomeMessage = document.getElementById('welcome-message');
             
             let controller = null; // Для AbortController
             let chatHistory = []; // Для хранения истории чатов
@@ -624,8 +656,40 @@
                 }, 100); // Небольшая задержка для гарантии завершения рендеринга
             }
             
+            // Функция для проверки наличия сообщений и управления приветственным сообщением
+            function checkMessagesAndToggleWelcome() {
+                const hasMessages = chatContainer.querySelectorAll('.message-row').length > 0;
+                const welcomeMessage = document.getElementById('welcome-message');
+                
+                if (hasMessages) {
+                    // Если есть сообщения, удаляем приветствие
+                    if (welcomeMessage) {
+                        welcomeMessage.remove();
+                    }
+                } else {
+                    // Если нет сообщений, добавляем приветствие
+                    if (!welcomeMessage) {
+                        const welcomeHTML = `
+                            <div class="welcome-message" id="welcome-message">
+                                <div class="welcome-icon">
+                                    <img src="/static/images/logo.svg" alt="Sefaria Logo" style="width: 100%; height: 100%; border-radius: 50%;">
+                                </div>
+                                <h2>Чем могу вам помочь?</h2>
+                            </div>
+                        `;
+                        chatContainer.innerHTML = welcomeHTML + chatContainer.innerHTML;
+                    }
+                }
+            }
+            
             // Функция для добавления сообщения в чат
             function addMessage(message, isUser) {
+                // Удаляем приветственное сообщение при добавлении первого сообщения
+                const welcomeMessage = document.getElementById('welcome-message');
+                if (welcomeMessage) {
+                    welcomeMessage.remove();
+                }
+                
                 const messageRow = document.createElement('div');
                 messageRow.classList.add('message-row');
                 messageRow.classList.add(isUser ? 'user' : 'bot');
@@ -688,6 +752,9 @@
                         updateChatList(chatIds);
                     }
                 }
+                
+                // Проверяем, нужно ли показать приветственное сообщение
+                checkMessagesAndToggleWelcome();
             }
             
             // Функция для загрузки конкретного чата
@@ -716,6 +783,9 @@
                 
                 // Закрываем мобильное меню истории
                 closeMobileHistory();
+                
+                // Проверяем, нужно ли показать приветственное сообщение
+                checkMessagesAndToggleWelcome();
                 
                 // Прокручиваем чат вниз после загрузки
                 scrollChatToBottom();
@@ -782,6 +852,9 @@
                 // Обновляем список чатов
                 const chatIds = [...new Set(chatHistory.map(item => item.chatId))];
                 updateChatList([...chatIds, currentChatId]);
+                
+                // Проверяем, нужно ли показывать приветственное сообщение
+                checkMessagesAndToggleWelcome();
                 
                 // Закрываем мобильное меню истории
                 closeMobileHistory();
