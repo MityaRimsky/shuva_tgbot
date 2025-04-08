@@ -6,6 +6,7 @@
     <title>SHUVA</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@300;400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --primary-color: #007FE7;
@@ -112,7 +113,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 8px 10px;
+            padding: 10px 15px;
             border-radius: var(--border-radius);
             cursor: pointer;
             transition: background-color 0.2s;
@@ -396,6 +397,59 @@
             color: #5d4037;
         }
         
+        /* Стили для Markdown */
+        .message-bubble h1, .message-bubble h2, .message-bubble h3, 
+        .message-bubble h4, .message-bubble h5, .message-bubble h6 {
+            margin-top: 16px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        
+        .message-bubble h1 {
+            font-size: 1.5em;
+        }
+        
+        .message-bubble h2 {
+            font-size: 1.3em;
+        }
+        
+        .message-bubble h3 {
+            font-size: 1.1em;
+        }
+        
+        .message-bubble p {
+            margin-bottom: 10px;
+        }
+        
+        .message-bubble ul, .message-bubble ol {
+            margin-top: 0;
+            margin-bottom: 10px;
+            padding-left: 20px;
+        }
+        
+        .message-bubble blockquote {
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+            margin: 0 0 10px 0;
+        }
+        
+        .message-bubble pre {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            padding: 16px;
+            overflow: auto;
+            margin-bottom: 10px;
+        }
+        
+        .message-bubble code {
+            background-color: rgba(27, 31, 35, 0.05);
+            border-radius: 3px;
+            padding: 0.2em 0.4em;
+            font-family: monospace;
+        }
+        
         /* Модуль ввода */
         .input-container {
             padding: 16px;
@@ -533,7 +587,7 @@
         </div>
         <div class="sidebar-content">
             <button class="new-chat-btn" id="desktop-new-chat">
-                <i class="fas fa-plus"></i>
+                <i class="fas fa-pen-to-square"></i>
                 Новый чат
             </button>
             <div class="chat-history" id="desktop-history">
@@ -551,7 +605,7 @@
             </div>
             <div class="mobile-actions">
                 <button class="mobile-btn" id="mobile-new-chat">
-                    <i class="fas fa-plus"></i>
+                    <i class="fas fa-pen-to-square"></i>
                 </button>
                 <button class="mobile-btn" id="burger-menu-btn">
                     <i class="fas fa-bars"></i>
@@ -706,6 +760,14 @@
                 if (!isUser) {
                     // Заменяем ссылки на тексты Sefaria специальным форматированием
                     message = message.replace(/📜\s+([^:]+)(?:\s+-\s+([^\n]+))?/g, '<div class="sefaria-quote"><span class="sefaria-ref">📜 $1</span>$2</div>');
+                    
+                    // Преобразуем Markdown в HTML
+                    try {
+                        // Используем marked.js для преобразования Markdown в HTML
+                        message = marked.parse(message);
+                    } catch (e) {
+                        console.error('Ошибка при обработке Markdown:', e);
+                    }
                 }
                 
                 html += message;
