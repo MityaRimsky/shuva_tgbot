@@ -6,7 +6,10 @@
     <title>SHUVA</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@300;400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/auth.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/static/js/auth.js"></script>
     <style>
         :root {
             --primary-color: #007FE7;
@@ -594,6 +597,15 @@
                 <!-- История чатов будет добавлена через JavaScript -->
             </div>
         </div>
+        <!-- Блок пользователя внизу сайдбара -->
+        <div class="sidebar-user">
+            <div id="user-avatar" class="user-avatar" style="display: none;">
+                <img src="/static/images/logo.svg" alt="Аватар пользователя">
+            </div>
+            <div id="login-button" class="login-button">
+                <i class="fas fa-sign-in-alt"></i>
+            </div>
+        </div>
     </div>
     
     <!-- Мобильная навигация -->
@@ -607,6 +619,14 @@
                 <button class="mobile-btn" id="mobile-new-chat">
                     <i class="fas fa-pen-to-square"></i>
                 </button>
+                <div class="mobile-user">
+                    <div id="mobile-user-avatar" class="user-avatar" style="display: none;">
+                        <img src="/static/images/logo.svg" alt="Аватар пользователя">
+                    </div>
+                    <div id="mobile-login-button" class="login-button">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </div>
+                </div>
                 <button class="mobile-btn" id="burger-menu-btn">
                     <i class="fas fa-bars"></i>
                 </button>
@@ -669,6 +689,25 @@
             </div>
             <div class="input-info">
                 Powered by Taiga Performance
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно профиля -->
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Профиль</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-avatar">
+                    <img id="profile-avatar-img" src="/static/images/logo.svg" alt="Аватар пользователя">
+                </div>
+                <div class="profile-info">
+                    <p id="profile-email">email@example.com</p>
+                </div>
+                <button id="logout-button" class="logout-button">Выйти из аккаунта</button>
             </div>
         </div>
     </div>

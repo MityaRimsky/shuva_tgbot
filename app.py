@@ -1,8 +1,10 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import os
 import sys
 import traceback
+import json
 from dotenv import load_dotenv
+from functools import wraps
 
 print("Запуск приложения...")
 
@@ -25,6 +27,7 @@ load_dotenv()
 
 print("Создание Flask-приложения...")
 app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "default-secret-key")
 chatbot = None
 
 # Проверка наличия API ключа перед инициализацией чат-бота
@@ -40,7 +43,18 @@ if api_key:
         print(f"Ошибка при инициализации чат-бота: {str(e)}")
         print(traceback.format_exc())
 
+# Декоратор для проверки аутентификации
+def auth_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        # Проверка наличия токена в сессии
+        if 'auth_token' not in session:
+            return redirect(url_for('auth'))
+        return f(*args, **kwargs)
+    return decorated
+
 @app.route('/')
+@auth_required
 def index():
     print("Запрос к корневому маршруту '/'")
     try:
@@ -57,7 +71,16 @@ def index():
         print(traceback.format_exc())
         return f"Ошибка при загрузке страницы: {str(e)}", 500
 
+@app.route('/auth')
+def auth():
+    # Если пользователь уже авторизован, перенаправляем на главную страницу
+    if 'auth_token' in session:
+        return redirect(url_for('index'))
+    
+    return render_template('auth.html')
+
 @app.route('/api/chat', methods=['POST'])
+@auth_required
 def chat():
     if not chatbot:
         return jsonify({
@@ -77,6 +100,7 @@ def chat():
         return jsonify({"error": f"Ошибка при обработке запроса: {str(e)}"}), 500
 
 @app.route('/api/text/<path:ref>')
+@auth_required
 def get_text(ref):
     if not chatbot:
         return jsonify({
@@ -88,6 +112,40 @@ def get_text(ref):
         return jsonify({"text": text})
     except Exception as e:
         return jsonify({"error": f"Ошибка при получении текста: {str(e)}"}), 500
+
+# API для работы с аутентификацией
+@app.route('/api/auth/login', methods=['POST'])
+def auth_login():
+    data = request.json
+    
+    # В реальном приложении здесь была бы проверка через Supabase
+    # Но для демонстрации мы просто сохраняем токен в сессии
+    session['auth_token'] = data.get('token')
+    session['user_email'] = data.get('email')
+    
+    return jsonify({"success": True})
+
+@app.route('/api/auth/logout', methods=['POST'])
+def auth_logout():
+    # Удаляем данные аутентификации из сессии
+    session.pop('auth_token', None)
+    session.pop('user_email', None)
+    
+    return jsonify({"success": True})
+
+@app.route('/api/auth/user')
+def auth_user():
+    if 'auth_token' not in session:
+        return jsonify({"authenticated": False}), 401
+    
+    # В реальном приложении здесь была бы проверка токена через Supabase
+    # и получение данных пользователя
+    return jsonify({
+        "authenticated": True,
+        "user": {
+            "email": session.get('user_email', 'user@example.com')
+        }
+    })
 
 if __name__ == '__main__':
     # Создаем директорию для шаблонов, если она не существует

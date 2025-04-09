@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHUVA - Вход</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #007FE7;
+            --sidebar-bg: #fbfcff;
+            --sidebar-hover: #f3f6ff;
+            --text-color: #333;
+            --text-light: #727272;
+            --bg-color: #fff;
+            --border-color: #e0e0e0;
+            --border-radius: 32px;
+            --error-color: #e53935;
+            --success-color: #43a047;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Golos Text', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .auth-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-bottom: 1rem;
+        }
+        
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.055em;
+        }
+        
+        .auth-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .form-group {
+            width: 100%;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            color: var(--text-color);
+            outline: none;
+            transition: border 0.2s, box-shadow 0.2s;
+            font-family: 'Golos Text', sans-serif;
+        }
+        
+        .form-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(0, 127, 231, 0.1);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            font-family: 'Golos Text', sans-serif;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: rgba(0, 127, 231, 0.9);
+        }
+        
+        .btn-outline {
+            background-color: white;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--sidebar-hover);
+        }
+        
+        .divider {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            margin: 1rem 0;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background-color: var(--border-color);
+        }
+        
+        .divider::before {
+            margin-right: 1rem;
+        }
+        
+        .divider::after {
+            margin-left: 1rem;
+        }
+        
+        .google-icon {
+            font-size: 1.2rem;
+            color: #4285F4;
+        }
+        
+        .error-message {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: rgba(229, 57, 53, 0.1);
+            color: var(--error-color);
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .success-message {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: rgba(67, 160, 71, 0.1);
+            color: var(--success-color);
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .toggle-auth {
+            margin-top: 1rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        
+        .toggle-auth a {
+            color: var(--primary-color);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .toggle-auth a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Адаптивный дизайн */
+        @media (max-width: 480px) {
+            .auth-container {
+                padding: 1.5rem;
+            }
+            
+            .logo-image {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="logo-container">
+            <img src="/static/images/logo.svg" alt="SHUVA Logo" class="logo-image">
+            <div class="logo-text">SHUVA</div>
+        </div>
+        
+        <div id="error-message" class="error-message"></div>
+        <div id="success-message" class="success-message"></div>
+        
+        <form id="auth-form" class="auth-form">
+            <div class="form-group">
+                <input type="email" id="email" class="form-input" placeholder="Email" required autocomplete="email">
+            </div>
+            <div class="form-group">
+                <input type="password" id="password" class="form-input" placeholder="Пароль" required autocomplete="current-password">
+            </div>
+            <button type="submit" id="auth-submit" class="btn btn-primary">Войти</button>
+        </form>
+        
+        <div class="divider">или</div>
+        
+        <button id="google-signin" class="btn btn-outline">
+            <i class="fab fa-google google-icon"></i>
+            <span>Войти с Google</span>
+        </button>
+        
+        <div class="toggle-auth">
+            <span id="toggle-text">Нет аккаунта?</span>
+            <a id="toggle-link">Зарегистрироваться</a>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Инициализация Supabase клиента
+            const supabaseUrl = 'https://aauoeuyjpfdncpfvvlbn.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhdW9ldXlqcGZkbmNwZnZ2bGJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxMzI0OTUsImV4cCI6MjA1OTcwODQ5NX0.1EVu5NKp-4Z_Ax6TMzDbifXZVc0XePKgHbFQzAYfCZo';
+            const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+            
+            // Элементы DOM
+            const authForm = document.getElementById('auth-form');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const authSubmit = document.getElementById('auth-submit');
+            const googleSignin = document.getElementById('google-signin');
+            const toggleText = document.getElementById('toggle-text');
+            const toggleLink = document.getElementById('toggle-link');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            
+            // Состояние формы (вход или регистрация)
+            let isLogin = true;
+            
+            // Функция для отображения ошибки
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+                
+                // Автоматически скрыть сообщение через 5 секунд
+                setTimeout(() => {
+                    errorMessage.style.display = 'none';
+                }, 5000);
+            }
+            
+            // Функция для отображения успешного сообщения
+            function showSuccess(message) {
+                successMessage.textContent = message;
+                successMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
+                
+                // Автоматически скрыть сообщение через 5 секунд
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 5000);
+            }
+            
+            // Функция для переключения между входом и регистрацией
+            function toggleAuthMode() {
+                isLogin = !isLogin;
+                
+                if (isLogin) {
+                    authSubmit.textContent = 'Войти';
+                    toggleText.textContent = 'Нет аккаунта?';
+                    toggleLink.textContent = 'Зарегистрироваться';
+                } else {
+                    authSubmit.textContent = 'Зарегистрироваться';
+                    toggleText.textContent = 'Уже есть аккаунт?';
+                    toggleLink.textContent = 'Войти';
+                }
+            }
+            
+            // Обработчик отправки формы
+            authForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const email = emailInput.value.trim();
+                const password = passwordInput.value.trim();
+                
+                // Валидация
+                if (!email || !password) {
+                    showError('Пожалуйста, заполните все поля');
+                    return;
+                }
+                
+                // Отключаем кнопку на время запроса
+                authSubmit.disabled = true;
+                
+                try {
+                    let response;
+                    
+                    if (isLogin) {
+                        // Вход
+                        response = await supabaseClient.auth.signInWithPassword({
+                            email: email,
+                            password: password
+                        });
+                    } else {
+                        // Регистрация
+                        response = await supabaseClient.auth.signUp({
+                            email: email,
+                            password: password
+                        });
+                    }
+                    
+                    if (response.error) {
+                        throw new Error(response.error.message);
+                    }
+                    
+                    if (isLogin) {
+                        // Успешный вход - перенаправляем на главную страницу
+                        window.location.href = '/';
+                    } else {
+                        // Успешная регистрация
+                        if (response.data?.user?.identities?.length === 0) {
+                            // Пользователь уже существует
+                            showError('Пользователь с таким email уже существует');
+                        } else if (response.data?.user?.confirmation_sent_at) {
+                            // Отправлено письмо для подтверждения
+                            showSuccess('На ваш email отправлено письмо для подтверждения регистрации');
+                            // Переключаемся на форму входа
+                            isLogin = false;
+                            toggleAuthMode();
+                        } else {
+                            // Успешная регистрация без подтверждения email
+                            showSuccess('Регистрация успешна');
+                            // Переключаемся на форму входа
+                            isLogin = false;
+                            toggleAuthMode();
+                        }
+                    }
+                } catch (error) {
+                    // Обработка ошибок
+                    let errorMsg = 'Произошла ошибка при аутентификации';
+                    
+                    if (error.message.includes('Invalid login credentials')) {
+                        errorMsg = 'Неверный email или пароль';
+                    } else if (error.message.includes('Email not confirmed')) {
+                        errorMsg = 'Email не подтвержден. Проверьте вашу почту';
+                    } else if (error.message.includes('Password should be at least')) {
+                        errorMsg = 'Пароль должен содержать не менее 6 символов';
+                    } else if (error.message.includes('User already registered')) {
+                        errorMsg = 'Пользователь с таким email уже существует';
+                    }
+                    
+                    showError(errorMsg);
+                } finally {
+                    // Включаем кнопку обратно
+                    authSubmit.disabled = false;
+                }
+            });
+            
+            // Обработчик входа через Google
+            googleSignin.addEventListener('click', async function() {
+                try {
+                    const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: {
+                            redirectTo: window.location.origin
+                        }
+                    });
+                    
+                    if (error) {
+                        throw new Error(error.message);
+                    }
+                } catch (error) {
+                    showError('Ошибка при входе через Google');
+                    console.error('Google sign-in error:', error);
+                }
+            });
+            
+            // Обработчик переключения между входом и регистрацией
+            toggleLink.addEventListener('click', toggleAuthMode);
+            
+            // Проверяем, авторизован ли пользователь
+            async function checkAuth() {
+                const { data, error } = await supabaseClient.auth.getSession();
+                
+                if (data?.session) {
+                    // Пользователь уже авторизован, перенаправляем на главную страницу
+                    window.location.href = '/';
+                }
+            }
+            
+            // Проверяем авторизацию при загрузке страницы
+            checkAuth();
+        });
+    </script>
+</body>
+</html>
