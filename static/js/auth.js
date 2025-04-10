@@ -36,9 +36,13 @@ function initElements() {
     profileEmail = document.getElementById('profile-email');
     profileAvatar = document.getElementById('profile-avatar-img');
     
-    // Элементы в сайдбаре
+    // Элементы в сайдбаре (десктоп)
     userAvatar = document.getElementById('user-avatar');
     loginButton = document.getElementById('login-button');
+    
+    // Элементы в сайдбаре (мобильный)
+    mobileUserAvatar = document.getElementById('mobile-user-avatar');
+    mobileLoginButton = document.getElementById('mobile-login-button');
     
     // Кнопка выхода
     logoutButton = document.getElementById('logout-button');
@@ -46,9 +50,14 @@ function initElements() {
 
 // Настройка обработчиков событий
 function setupEventListeners() {
-    // Открытие модального окна профиля при клике на аватар
+    // Открытие модального окна профиля при клике на аватар (десктоп)
     if (userAvatar) {
         userAvatar.addEventListener('click', openProfileModal);
+    }
+    
+    // Открытие модального окна профиля при клике на аватар (мобильный)
+    if (mobileUserAvatar) {
+        mobileUserAvatar.addEventListener('click', openProfileModal);
     }
     
     // Закрытие модального окна при клике на крестик
@@ -69,9 +78,14 @@ function setupEventListeners() {
         logoutButton.addEventListener('click', logout);
     }
     
-    // Кнопка входа
+    // Кнопка входа (десктоп)
     if (loginButton) {
         loginButton.addEventListener('click', redirectToLogin);
+    }
+    
+    // Кнопка входа (мобильный)
+    if (mobileLoginButton) {
+        mobileLoginButton.addEventListener('click', redirectToLogin);
     }
 }
 
@@ -102,14 +116,24 @@ async function checkAuth() {
 function updateUIForAuthenticatedUser() {
     if (!currentUser) return;
     
-    // Показываем аватар пользователя
+    // Показываем аватар пользователя (десктоп)
     if (userAvatar) {
         userAvatar.style.display = 'flex';
     }
     
-    // Скрываем кнопку входа
+    // Показываем аватар пользователя (мобильный)
+    if (mobileUserAvatar) {
+        mobileUserAvatar.style.display = 'flex';
+    }
+    
+    // Скрываем кнопку входа (десктоп)
     if (loginButton) {
         loginButton.style.display = 'none';
+    }
+    
+    // Скрываем кнопку входа (мобильный)
+    if (mobileLoginButton) {
+        mobileLoginButton.style.display = 'none';
     }
     
     // Обновляем информацию в модальном окне профиля
@@ -118,7 +142,7 @@ function updateUIForAuthenticatedUser() {
     }
     
     // Устанавливаем аватар пользователя
-    const avatarUrl = currentUser.user_metadata?.avatar_url || '/static/images/default-avatar.png';
+    const avatarUrl = currentUser.user_metadata?.avatar_url || '/static/images/logo.svg';
     
     if (profileAvatar) {
         profileAvatar.src = avatarUrl;
@@ -127,18 +151,32 @@ function updateUIForAuthenticatedUser() {
     if (userAvatar && userAvatar.querySelector('img')) {
         userAvatar.querySelector('img').src = avatarUrl;
     }
+    
+    if (mobileUserAvatar && mobileUserAvatar.querySelector('img')) {
+        mobileUserAvatar.querySelector('img').src = avatarUrl;
+    }
 }
 
 // Обновление UI для неавторизованного пользователя
 function updateUIForUnauthenticatedUser() {
-    // Скрываем аватар пользователя
+    // Скрываем аватар пользователя (десктоп)
     if (userAvatar) {
         userAvatar.style.display = 'none';
     }
     
-    // Показываем кнопку входа
+    // Скрываем аватар пользователя (мобильный)
+    if (mobileUserAvatar) {
+        mobileUserAvatar.style.display = 'none';
+    }
+    
+    // Показываем кнопку входа (десктоп)
     if (loginButton) {
         loginButton.style.display = 'flex';
+    }
+    
+    // Показываем кнопку входа (мобильный)
+    if (mobileLoginButton) {
+        mobileLoginButton.style.display = 'flex';
     }
 }
 

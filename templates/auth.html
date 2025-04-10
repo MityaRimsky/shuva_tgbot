@@ -348,8 +348,33 @@
                     }
                     
                     if (isLogin) {
-                        // Успешный вход - перенаправляем на главную страницу
-                        window.location.href = '/';
+                        // Успешный вход - сохраняем токен в сессии и перенаправляем на главную страницу
+                        const token = response.data.session.access_token;
+                        const user = response.data.user;
+                        
+                        // Отправляем токен на сервер для сохранения в сессии
+                        fetch('/api/auth/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                token: token,
+                                email: user.email
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Перенаправляем на главную страницу
+                                window.location.href = '/';
+                            } else {
+                                throw new Error('Ошибка при сохранении сессии');
+                            }
+                        })
+                        .catch(error => {
+                            showError('Ошибка при сохранении сессии: ' + error.message);
+                        });
                     } else {
                         // Успешная регистрация
                         if (response.data?.user?.identities?.length === 0) {
@@ -412,18 +437,55 @@
             // Обработчик переключения между входом и регистрацией
             toggleLink.addEventListener('click', toggleAuthMode);
             
+            // Функция для сохранения сессии на сервере и перенаправления
+            async function saveSessionAndRedirect(session, user) {
+                try {
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            token: session.access_token,
+                            email: user.email
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Перенаправляем на главную страницу
+                        window.location.href = '/';
+                    } else {
+                        throw new Error('Ошибка при сохранении сессии');
+                    }
+                } catch (error) {
+                    showError('Ошибка при сохранении сессии: ' + error.message);
+                }
+            }
+            
             // Проверяем, авторизован ли пользователь
             async function checkAuth() {
                 const { data, error } = await supabaseClient.auth.getSession();
                 
                 if (data?.session) {
-                    // Пользователь уже авторизован, перенаправляем на главную страницу
-                    window.location.href = '/';
+                    // Пользователь уже авторизован
+                    // Сохраняем сессию на сервере и перенаправляем
+                    saveSessionAndRedirect(data.session, data.session.user);
                 }
             }
             
             // Проверяем авторизацию при загрузке страницы
             checkAuth();
+            
+            // Добавляем обработчик изменения состояния аутентификации
+            supabaseClient.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' && session) {
+                    // Пользователь вошел (например, через Google)
+                    // Сохраняем сессию на сервере и перенаправляем
+                    saveSessionAndRedirect(session, session.user);
+                }
+            });
         });
     </script>
 </body>
