@@ -18,8 +18,8 @@
 
 /* Аватар пользователя в сайдбаре */
 .user-avatar {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     overflow: hidden;
     cursor: pointer;
@@ -42,8 +42,8 @@
 
 /* Кнопка входа в сайдбаре */
 .login-button {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -130,12 +130,11 @@
 
 /* Профиль пользователя */
 .profile-avatar {
-    width: 80px;
-    height: 80px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     overflow: hidden;
     margin-bottom: 1.5rem;
-    border: 3px solid var(--primary-color);
 }
 
 .profile-avatar img {
@@ -161,19 +160,23 @@
 .logout-button {
     width: 100%;
     padding: 0.75rem 1rem;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
+    background-color: transparent; /* Прозрачный фон */
+    color: var(--text-light); /* Цвет текста как primary-color */
+    border: 1px solid var(--border-color); /* Бордер primary-color */
     border-radius: var(--border-radius);
     font-size: 0.9rem;
-    font-weight: 500;
+    font-weight: 300;
     cursor: pointer;
-    transition: background-color var(--transition-speed), transform 0.1s;
+    transition: color var(--transition-speed), 
+                border-color var(--transition-speed), 
+                transform 0.1s;
     font-family: 'Golos Text', sans-serif;
 }
 
 .logout-button:hover {
-    background-color: rgba(0, 127, 231, 0.9);
+    color: var(--text-light); /* Оставляем тот же цвет, но можно добавить прозрачность */
+    border-color: var(--border-color);
+    background-color: rgba(0, 127, 231, 0.1); /* Легкая прозрачная заливка при наведении */
 }
 
 .logout-button:active {

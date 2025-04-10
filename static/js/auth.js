@@ -134,7 +134,7 @@ function updateUIForAuthenticatedUser() {
     }
     
     // Устанавливаем аватар пользователя
-    const avatarUrl = currentUser.user_metadata?.avatar_url || '/static/images/logo.svg';
+    const avatarUrl = currentUser.user_metadata?.avatar_url || '/static/images/icon_profile.svg';
     
     if (profileAvatar) {
         profileAvatar.src = avatarUrl;
@@ -162,7 +162,7 @@ function updateUIForUnauthenticatedUser() {
     }
     
     // Устанавливаем аватар по умолчанию
-    const defaultAvatarUrl = '/static/images/logo.svg';
+    const defaultAvatarUrl = '/static/images/icon_profile.svg';
     
     if (sidebarUser && sidebarUser.querySelector('img')) {
         sidebarUser.querySelector('img').src = defaultAvatarUrl;
