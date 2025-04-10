@@ -203,6 +203,15 @@ function closeProfileModal() {
 // Выход из аккаунта
 async function logout() {
     try {
+        // Сначала отправляем запрос на сервер для удаления сессии
+        await fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        // Затем выходим из Supabase
         const { error } = await supabaseClient.auth.signOut();
         
         if (error) {
@@ -212,11 +221,8 @@ async function logout() {
         // Сбрасываем текущего пользователя
         currentUser = null;
         
-        // Обновляем UI
-        updateUIForUnauthenticatedUser();
-        
-        // Закрываем модальное окно профиля
-        closeProfileModal();
+        // Перенаправляем на страницу авторизации
+        window.location.href = '/auth';
         
     } catch (error) {
         console.error('Ошибка при выходе из аккаунта:', error);
