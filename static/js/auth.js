@@ -1,6 +1,6 @@
 // Инициализация Supabase клиента
-const supabaseUrl = 'https://aauoeuyjpfdncpfvvlbn.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhdW9ldXlqcGZkbmNwZnZ2bGJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxMzI0OTUsImV4cCI6MjA1OTcwODQ5NX0.1EVu5NKp-4Z_Ax6TMzDbifXZVc0XePKgHbFQzAYfCZo';
+const supabaseUrl = SUPABASE_URL;
+const supabaseKey = SUPABASE_KEY;
 let supabaseClient;
 
 // Состояние пользователя
