@@ -1,6 +1,6 @@
-// Инициализация Supabase клиента
-const supabaseUrl = SUPABASE_URL;
-const supabaseKey = SUPABASE_KEY;
+// Переменные для Supabase
+let supabaseUrl;
+let supabaseKey;
 let supabaseClient;
 
 // Состояние пользователя
@@ -15,18 +15,29 @@ let logoutButton = null;
 let loginButton = null;
 
 // Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    // Инициализация Supabase
-    supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-    // Инициализация элементов DOM
-    initElements();
-    
-    // Проверка авторизации
-    checkAuth();
-    
-    // Обработчики событий
-    setupEventListeners();
+document.addEventListener('DOMContentLoaded', async function() {
+    // Получаем конфигурацию Supabase с сервера
+    try {
+        const response = await fetch('/api/auth/config');
+        const config = await response.json();
+        
+        supabaseUrl = config.supabaseUrl;
+        supabaseKey = config.supabaseKey;
+        
+        // Инициализация Supabase
+        supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // Инициализация элементов DOM
+        initElements();
+        
+        // Проверка авторизации
+        checkAuth();
+        
+        // Обработчики событий
+        setupEventListeners();
+    } catch (error) {
+        console.error('Ошибка при получении конфигурации Supabase:', error);
+    }
 });
 
 // Инициализация элементов DOM
@@ -37,12 +48,12 @@ function initElements() {
     profileAvatar = document.getElementById('profile-avatar-img');
     
     // Элементы в сайдбаре (десктоп)
-    userAvatar = document.getElementById('user-avatar');
-    loginButton = document.getElementById('login-button');
+    sidebarUser = document.getElementById('sidebar-user');
+    sidebarEmail = document.getElementById('sidebar-email');
     
     // Элементы в сайдбаре (мобильный)
-    mobileUserAvatar = document.getElementById('mobile-user-avatar');
-    mobileLoginButton = document.getElementById('mobile-login-button');
+    mobileSidebarUser = document.getElementById('mobile-sidebar-user');
+    mobileSidebarEmail = document.getElementById('mobile-sidebar-email');
     
     // Кнопка выхода
     logoutButton = document.getElementById('logout-button');
@@ -50,14 +61,14 @@ function initElements() {
 
 // Настройка обработчиков событий
 function setupEventListeners() {
-    // Открытие модального окна профиля при клике на аватар (десктоп)
-    if (userAvatar) {
-        userAvatar.addEventListener('click', openProfileModal);
+    // Открытие модального окна профиля при клике на блок пользователя (десктоп)
+    if (sidebarUser) {
+        sidebarUser.addEventListener('click', openProfileModal);
     }
     
-    // Открытие модального окна профиля при клике на аватар (мобильный)
-    if (mobileUserAvatar) {
-        mobileUserAvatar.addEventListener('click', openProfileModal);
+    // Открытие модального окна профиля при клике на блок пользователя (мобильный)
+    if (mobileSidebarUser) {
+        mobileSidebarUser.addEventListener('click', openProfileModal);
     }
     
     // Закрытие модального окна при клике на крестик
@@ -78,15 +89,6 @@ function setupEventListeners() {
         logoutButton.addEventListener('click', logout);
     }
     
-    // Кнопка входа (десктоп)
-    if (loginButton) {
-        loginButton.addEventListener('click', redirectToLogin);
-    }
-    
-    // Кнопка входа (мобильный)
-    if (mobileLoginButton) {
-        mobileLoginButton.addEventListener('click', redirectToLogin);
-    }
 }
 
 // Проверка авторизации пользователя
@@ -116,29 +118,19 @@ async function checkAuth() {
 function updateUIForAuthenticatedUser() {
     if (!currentUser) return;
     
-    // Показываем аватар пользователя (десктоп)
-    if (userAvatar) {
-        userAvatar.style.display = 'flex';
-    }
-    
-    // Показываем аватар пользователя (мобильный)
-    if (mobileUserAvatar) {
-        mobileUserAvatar.style.display = 'flex';
-    }
-    
-    // Скрываем кнопку входа (десктоп)
-    if (loginButton) {
-        loginButton.style.display = 'none';
-    }
-    
-    // Скрываем кнопку входа (мобильный)
-    if (mobileLoginButton) {
-        mobileLoginButton.style.display = 'none';
-    }
-    
     // Обновляем информацию в модальном окне профиля
     if (profileEmail) {
         profileEmail.textContent = currentUser.email || 'Нет email';
+    }
+    
+    // Обновляем email в сайдбаре (десктоп)
+    if (sidebarEmail) {
+        sidebarEmail.textContent = currentUser.email || 'Нет email';
+    }
+    
+    // Обновляем email в сайдбаре (мобильный)
+    if (mobileSidebarEmail) {
+        mobileSidebarEmail.textContent = currentUser.email || 'Нет email';
     }
     
     // Устанавливаем аватар пользователя
@@ -148,35 +140,36 @@ function updateUIForAuthenticatedUser() {
         profileAvatar.src = avatarUrl;
     }
     
-    if (userAvatar && userAvatar.querySelector('img')) {
-        userAvatar.querySelector('img').src = avatarUrl;
+    if (sidebarUser && sidebarUser.querySelector('img')) {
+        sidebarUser.querySelector('img').src = avatarUrl;
     }
     
-    if (mobileUserAvatar && mobileUserAvatar.querySelector('img')) {
-        mobileUserAvatar.querySelector('img').src = avatarUrl;
+    if (mobileSidebarUser && mobileSidebarUser.querySelector('img')) {
+        mobileSidebarUser.querySelector('img').src = avatarUrl;
     }
 }
 
 // Обновление UI для неавторизованного пользователя
 function updateUIForUnauthenticatedUser() {
-    // Скрываем аватар пользователя (десктоп)
-    if (userAvatar) {
-        userAvatar.style.display = 'none';
+    // Обновляем текст в сайдбаре (десктоп)
+    if (sidebarEmail) {
+        sidebarEmail.textContent = 'Войти';
     }
     
-    // Скрываем аватар пользователя (мобильный)
-    if (mobileUserAvatar) {
-        mobileUserAvatar.style.display = 'none';
+    // Обновляем текст в сайдбаре (мобильный)
+    if (mobileSidebarEmail) {
+        mobileSidebarEmail.textContent = 'Войти';
     }
     
-    // Показываем кнопку входа (десктоп)
-    if (loginButton) {
-        loginButton.style.display = 'flex';
+    // Устанавливаем аватар по умолчанию
+    const defaultAvatarUrl = '/static/images/logo.svg';
+    
+    if (sidebarUser && sidebarUser.querySelector('img')) {
+        sidebarUser.querySelector('img').src = defaultAvatarUrl;
     }
     
-    // Показываем кнопку входа (мобильный)
-    if (mobileLoginButton) {
-        mobileLoginButton.style.display = 'flex';
+    if (mobileSidebarUser && mobileSidebarUser.querySelector('img')) {
+        mobileSidebarUser.querySelector('img').src = defaultAvatarUrl;
     }
 }
 

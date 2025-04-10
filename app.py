@@ -147,6 +147,14 @@ def auth_user():
         }
     })
 
+@app.route('/api/auth/config')
+def auth_config():
+    # Предоставляем только публичный ключ Supabase, который безопасно передавать клиенту
+    return jsonify({
+        "supabaseUrl": os.getenv("SUPABASE_URL"),
+        "supabaseKey": os.getenv("SUPABASE_KEY")
+    })
+
 if __name__ == '__main__':
     # Создаем директорию для шаблонов, если она не существует
     print("Проверка директории шаблонов...")

@@ -251,11 +251,24 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Инициализация Supabase клиента
-            const supabaseUrl = 'https://aauoeuyjpfdncpfvvlbn.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhdW9ldXlqcGZkbmNwZnZ2bGJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxMzI0OTUsImV4cCI6MjA1OTcwODQ5NX0.1EVu5NKp-4Z_Ax6TMzDbifXZVc0XePKgHbFQzAYfCZo';
-            const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Получаем конфигурацию Supabase с сервера
+            let supabaseClient;
+            
+            try {
+                const response = await fetch('/api/auth/config');
+                const config = await response.json();
+                
+                const supabaseUrl = config.supabaseUrl;
+                const supabaseKey = config.supabaseKey;
+                
+                // Инициализация Supabase
+                supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+            } catch (error) {
+                console.error('Ошибка при получении конфигурации Supabase:', error);
+                showError('Ошибка при инициализации: не удалось получить конфигурацию');
+                return;
+            }
             
             // Элементы DOM
             const authForm = document.getElementById('auth-form');
