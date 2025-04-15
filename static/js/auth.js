@@ -16,6 +16,11 @@ let loginButton = null;
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', async function() {
+    // Инициализируем модуль i18n, если он еще не инициализирован
+    if (window.i18nModule && !window.i18next) {
+        await window.i18nModule.initI18n();
+    }
+    
     // Получаем конфигурацию Supabase с сервера
     try {
         const response = await fetch('/api/auth/config');
@@ -36,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Обработчики событий
         setupEventListeners();
     } catch (error) {
-        console.error('Ошибка при получении конфигурации Supabase:', error);
+        console.error(window.i18nModule.t('auth.errorConfig', 'Ошибка при получении конфигурации Supabase:'), error);
     }
 });
 
@@ -109,7 +114,7 @@ async function checkAuth() {
             updateUIForUnauthenticatedUser();
         }
     } catch (error) {
-        console.error('Ошибка при проверке авторизации:', error);
+        console.error(window.i18nModule.t('auth.errorCheckAuth', 'Ошибка при проверке авторизации:'), error);
         updateUIForUnauthenticatedUser();
     }
 }
@@ -120,17 +125,17 @@ function updateUIForAuthenticatedUser() {
     
     // Обновляем информацию в модальном окне профиля
     if (profileEmail) {
-        profileEmail.textContent = currentUser.email || 'Нет email';
+        profileEmail.textContent = currentUser.email || window.i18nModule.t('auth.noEmail', 'Нет email');
     }
     
     // Обновляем email в сайдбаре (десктоп)
     if (sidebarEmail) {
-        sidebarEmail.textContent = currentUser.email || 'Нет email';
+        sidebarEmail.textContent = currentUser.email || window.i18nModule.t('auth.noEmail', 'Нет email');
     }
     
     // Обновляем email в сайдбаре (мобильный)
     if (mobileSidebarEmail) {
-        mobileSidebarEmail.textContent = currentUser.email || 'Нет email';
+        mobileSidebarEmail.textContent = currentUser.email || window.i18nModule.t('auth.noEmail', 'Нет email');
     }
     
     // Устанавливаем аватар пользователя
@@ -153,12 +158,12 @@ function updateUIForAuthenticatedUser() {
 function updateUIForUnauthenticatedUser() {
     // Обновляем текст в сайдбаре (десктоп)
     if (sidebarEmail) {
-        sidebarEmail.textContent = 'Войти';
+        sidebarEmail.textContent = window.i18nModule.t('auth.login', 'Войти');
     }
     
     // Обновляем текст в сайдбаре (мобильный)
     if (mobileSidebarEmail) {
-        mobileSidebarEmail.textContent = 'Войти';
+        mobileSidebarEmail.textContent = window.i18nModule.t('auth.login', 'Войти');
     }
     
     // Устанавливаем аватар по умолчанию
@@ -218,7 +223,7 @@ async function logout() {
         window.location.href = '/auth';
         
     } catch (error) {
-        console.error('Ошибка при выходе из аккаунта:', error);
+        console.error(window.i18nModule.t('auth.errorLogout', 'Ошибка при выходе из аккаунта:'), error);
     }
 }
 

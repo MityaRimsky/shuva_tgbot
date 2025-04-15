@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHUVA - Вход</title>
+    <title data-i18n="app.name">SHUVA</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@300;400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -340,7 +340,7 @@
     <div class="auth-container">
         <div class="logo-container">
             <img src="/static/images/logo.svg" alt="SHUVA Logo" class="logo-image">
-            <div class="logo-text">SHUVA</div>
+            <div class="logo-text" data-i18n="app.name">SHUVA</div>
         </div>
         
         <div id="error-message" class="error-message"></div>
@@ -348,29 +348,29 @@
         
         <form id="auth-form" class="auth-form">
             <div class="form-group">
-                <input type="email" id="email" class="form-input" placeholder="Email" required autocomplete="email">
+                <input type="email" id="email" class="form-input" data-i18n-placeholder="auth.email" placeholder="Email" required autocomplete="email">
             </div>
             <div class="form-group">
-                <input type="password" id="password" class="form-input" placeholder="Пароль" required autocomplete="current-password">
+                <input type="password" id="password" class="form-input" data-i18n-placeholder="auth.password" placeholder="Пароль" required autocomplete="current-password">
             </div>
-            <button type="submit" id="auth-submit" class="btn btn-primary">Войти</button>
+            <button type="submit" id="auth-submit" class="btn btn-primary" data-i18n="auth.login">Войти</button>
         </form>
         
-        <div class="divider">или</div>
+        <div class="divider"><span data-i18n="auth.or">или</span></div>
         
         <button id="google-signin" class="btn btn-outline">
             <i class="fab fa-google google-icon"></i>
-            <span>Войти с Google</span>
+            <span data-i18n="auth.loginWithGoogle">Войти с Google</span>
         </button>
         
         <div class="toggle-auth">
-            <span id="toggle-text">Нет аккаунта?</span>
-            <a id="toggle-link">Зарегистрироваться</a>
+            <span id="toggle-text" data-i18n="auth.noAccount">Нет аккаунта?</span>
+            <a id="toggle-link" data-i18n="auth.register">Зарегистрироваться</a>
         </div>
         
         <div class="auth-footer">
             <div class="forgot-password">
-                <a id="forgot-password-link">Забыли пароль?</a>
+                <a id="forgot-password-link" data-i18n="auth.forgotPassword">Забыли пароль?</a>
             </div>
             <div class="language-switcher">
                 <div class="language-option" data-lang="ru">
@@ -379,6 +379,45 @@
                 <div class="language-option" data-lang="en">
                     <img src="/static/images/flag_us.svg" alt="English">
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для сброса пароля -->
+    <div id="reset-password-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="reset-title" data-i18n="auth.resetPassword">Сброс пароля</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="reset-password-form" class="auth-form">
+                    <div class="form-group">
+                        <input type="email" id="reset-email" class="form-input" data-i18n-placeholder="auth.email" placeholder="Email" required>
+                    </div>
+                    <button type="submit" id="reset-submit" class="btn btn-primary" data-i18n="auth.resetSubmit">Отправить ссылку для сброса</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для ввода нового пароля -->
+    <div id="new-password-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="new-password-title" data-i18n="auth.setNewPassword">Установка нового пароля</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="new-password-form" class="auth-form">
+                    <div class="form-group">
+                        <input type="password" id="new-password" class="form-input" data-i18n-placeholder="auth.newPassword" placeholder="Новый пароль" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="confirm-password" class="form-input" data-i18n-placeholder="auth.confirmPassword" placeholder="Подтвердите пароль" required>
+                    </div>
+                    <button type="submit" id="new-password-submit" class="btn btn-primary" data-i18n="auth.saveNewPassword">Сохранить новый пароль</button>
+                </form>
             </div>
         </div>
     </div>
@@ -403,8 +442,8 @@
                 // Инициализация Supabase
                 supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
             } catch (error) {
-                console.error('Ошибка при получении конфигурации Supabase:', error);
-                showError('Ошибка при инициализации: не удалось получить конфигурацию');
+                console.error(window.i18nModule.t('auth.errorConfig', 'Ошибка при получении конфигурации Supabase:'), error);
+                showError(window.i18nModule.t('auth.errorInitialization', 'Ошибка при инициализации: не удалось получить конфигурацию'));
                 return;
             }
             
@@ -534,12 +573,11 @@
                                 // Перенаправляем на главную страницу
                                 window.location.href = '/';
                             } else {
-                                throw new Error('Ошибка при сохранении сессии');
+                                throw new Error(t('auth.errorSessionSave'));
                             }
                         })
                         .catch(error => {
                             // Используем i18n для сообщения об ошибке
-                            const t = window.i18nModule.t;
                             showError(t('auth.errorSessionSave') + ': ' + error.message);
                         });
                     } else {
@@ -551,13 +589,13 @@
                             showError(t('auth.errorUserExists'));
                         } else if (response.data?.user?.confirmation_sent_at) {
                             // Отправлено письмо для подтверждения
-                            showSuccess(t('auth.confirmationEmailSent'));
+                            showSuccess(t('auth.successEmailConfirmation'));
                             // Переключаемся на форму входа
                             isLogin = false;
                             toggleAuthMode();
                         } else {
                             // Успешная регистрация без подтверждения email
-                            showSuccess(t('auth.registrationSuccess'));
+                            showSuccess(t('auth.successRegistration'));
                             // Переключаемся на форму входа
                             isLogin = false;
                             toggleAuthMode();
@@ -629,7 +667,7 @@
                         // Перенаправляем на главную страницу
                         window.location.href = '/';
                     } else {
-                        throw new Error('Ошибка при сохранении сессии');
+                        throw new Error(window.i18nModule.t('auth.errorSessionSave'));
                     }
                 } catch (error) {
                     // Используем i18n для сообщения об ошибке
@@ -735,7 +773,7 @@
                             window.location.href = '/auth';
                         }, 2000);
                     } catch (error) {
-                        console.error('Ошибка при обновлении пароля:', error);
+                        console.error(window.i18nModule.t('auth.errorPasswordUpdate'), error);
                         showError(t('auth.errorPasswordUpdate') + ': ' + error.message);
                         newPasswordSubmit.disabled = false;
                     }
@@ -761,7 +799,7 @@
                     
                     return { success: true };
                 } catch (error) {
-                    console.error('Ошибка при сбросе пароля:', error);
+                    console.error(window.i18nModule.t('auth.errorPasswordReset', 'Ошибка при сбросе пароля:'), error);
                     return { success: false, error: error.message };
                 }
             }
@@ -793,6 +831,9 @@
                 languageOptions.forEach(option => {
                     option.classList.toggle('active', option.dataset.lang === lang);
                 });
+                
+                // Сохраняем выбранный язык в localStorage
+                localStorage.setItem('app_language', lang);
                 
                 // Используем функцию changeLanguage из модуля i18n
                 await window.i18nModule.changeLanguage(lang);
@@ -829,17 +870,6 @@
                 // Обновляем текст в ссылке "забыли пароль?"
                 forgotPasswordLink.textContent = t('auth.forgotPassword');
                 
-                // Обновляем тексты в модальном окне сброса пароля
-                resetTitle.textContent = t('auth.resetPassword');
-                resetEmailInput.placeholder = t('auth.email');
-                resetSubmit.textContent = t('auth.resetSubmit');
-                
-                // Обновляем тексты в модальном окне нового пароля
-                document.getElementById('new-password-title').textContent = t('auth.setNewPassword');
-                document.getElementById('new-password').placeholder = t('auth.newPassword');
-                document.getElementById('confirm-password').placeholder = t('auth.confirmPassword');
-                document.getElementById('new-password-submit').textContent = t('auth.saveNewPassword');
-                
                 // Обновляем заголовок страницы
                 document.title = `${t('app.name')} - ${t('auth.login')}`;
                 
@@ -847,28 +877,31 @@
                 document.querySelector('.logo-text').textContent = t('app.name');
             }
             
-            // Обработчик для ссылки "забыли пароль?"
-            forgotPasswordLink.addEventListener('click', openResetPasswordModal);
-            
-            // Обработчик для кнопок закрытия модального окна
-            closeModalButtons.forEach(button => {
-                button.addEventListener('click', closeResetPasswordModal);
+            // Добавляем обработчики для переключателя языка
+            languageOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const lang = this.dataset.lang;
+                    if (lang !== currentLang) {
+                        switchLanguage(lang);
+                    }
+                });
             });
             
-            // Обработчик клика вне модального окна для его закрытия
-            window.addEventListener('click', function(event) {
-                if (event.target === resetPasswordModal) {
-                    closeResetPasswordModal();
+            // Устанавливаем активный класс для текущего языка
+            languageOptions.forEach(option => {
+                if (option.dataset.lang === currentLang) {
+                    option.classList.add('active');
                 }
             });
             
-            // Обработчик формы сброса пароля
+            // Добавляем обработчик для ссылки "Забыли пароль?"
+            forgotPasswordLink.addEventListener('click', openResetPasswordModal);
+            
+            // Добавляем обработчик для формы сброса пароля
             resetPasswordForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
                 const email = resetEmailInput.value.trim();
-                
-                // Валидация с использованием i18n
                 const t = window.i18nModule.t;
                 
                 if (!email) {
@@ -878,77 +911,36 @@
                 
                 resetSubmit.disabled = true;
                 
-                const result = await resetPassword(email);
-                
-                if (result.success) {
-                    showSuccess(t('auth.resetSuccess'));
-                    closeResetPasswordModal();
-                } else {
-                    showError(result.error);
+                try {
+                    const result = await resetPassword(email);
+                    
+                    if (result.success) {
+                        showSuccess(t('auth.resetSuccess'));
+                        
+                        // Закрываем модальное окно
+                        closeResetPasswordModal();
+                    } else {
+                        throw new Error(result.error);
+                    }
+                } catch (error) {
+                    showError(t('auth.errorPasswordReset') + ': ' + error.message);
+                } finally {
+                    resetSubmit.disabled = false;
                 }
-                
-                resetSubmit.disabled = false;
             });
             
-            // Обработчики для переключения языка
-            languageOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    const lang = this.dataset.lang;
-                    switchLanguage(lang);
+            // Добавляем обработчики для закрытия модальных окон
+            closeModalButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const modal = this.closest('.modal');
+                    modal.classList.remove('active');
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                    }, 300);
                 });
             });
             
-            // Инициализация языка
-            switchLanguage(currentLang);
-            
-            // Добавляем обработчик изменения состояния аутентификации
-            supabaseClient.auth.onAuthStateChange((event, session) => {
-                if (event === 'SIGNED_IN' && session) {
-                    // Пользователь вошел (например, через Google)
-                    // Сохраняем сессию на сервере и перенаправляем
-                    saveSessionAndRedirect(session, session.user);
-                }
-            });
+            // Вызываем функцию обновления текстов при загрузке страницы
+            updatePageTexts();
         });
     </script>
-    
-    <!-- Модальное окно для сброса пароля -->
-    <div id="reset-password-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="reset-title">Сброс пароля</h2>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="reset-password-form" class="auth-form">
-                    <div class="form-group">
-                        <input type="email" id="reset-email" class="form-input" placeholder="Email" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary" id="reset-submit">Отправить ссылку для сброса</button>
-                </form>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Модальное окно для ввода нового пароля -->
-    <div id="new-password-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="new-password-title">Установка нового пароля</h2>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="new-password-form" class="auth-form">
-                    <div class="form-group">
-                        <input type="password" id="new-password" class="form-input" placeholder="Новый пароль" required>
-                    </div>
-                    <div class="form-group">
-                        <input type="password" id="confirm-password" class="form-input" placeholder="Подтвердите пароль" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary" id="new-password-submit">Сохранить новый пароль</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</body>
-</html>

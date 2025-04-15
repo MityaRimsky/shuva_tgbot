@@ -31,7 +31,14 @@
     "passwordsDoNotMatch": "Пароли не совпадают",
     "passwordUpdated": "Пароль успешно обновлен",
     "errorPasswordUpdate": "Ошибка при обновлении пароля",
-    "setNewPassword": "Установка нового пароля"
+    "setNewPassword": "Установка нового пароля",
+    "noEmail": "Нет email",
+    "errorConfig": "Ошибка при получении конфигурации Supabase:",
+    "errorCheckAuth": "Ошибка при проверке авторизации:",
+    "errorLogout": "Ошибка при выходе из аккаунта:",
+    "errorInitialization": "Ошибка при инициализации: не удалось получить конфигурацию",
+    "errorPasswordReset": "Ошибка при сбросе пароля:",
+    "confirmationEmailSent": "На ваш email отправлено письмо для подтверждения регистрации"
   },
   "common": {
     "appName": "SHUVA",

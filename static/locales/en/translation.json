@@ -31,7 +31,14 @@
     "passwordsDoNotMatch": "Passwords do not match",
     "passwordUpdated": "Password successfully updated",
     "errorPasswordUpdate": "Error updating password",
-    "setNewPassword": "Set New Password"
+    "setNewPassword": "Set New Password",
+    "noEmail": "No email",
+    "errorConfig": "Error getting Supabase configuration:",
+    "errorCheckAuth": "Error checking authentication:",
+    "errorLogout": "Error during logout:",
+    "errorInitialization": "Initialization error: could not get configuration",
+    "errorPasswordReset": "Error resetting password:",
+    "confirmationEmailSent": "A confirmation email has been sent to your address"
   },
   "common": {
     "appName": "SHUVA",
