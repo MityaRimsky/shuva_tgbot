@@ -683,14 +683,109 @@
                 }
             }
             
-            // Проверяем авторизацию при загрузке страницы
-            checkAuth();
+            // Проверяем, находимся ли мы на странице сброса пароля
+            function checkResetPasswordPage() {
+                // Проверяем URL на наличие параметров для сброса пароля
+                const url = new URL(window.location.href);
+                
+                // Проверяем параметры в хэше URL (после #)
+                if (window.location.hash) {
+                    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                    const type = hashParams.get('type');
+                    const accessToken = hashParams.get('access_token');
+                    
+                    if (type === 'recovery' && accessToken) {
+                        // Показываем форму для ввода нового пароля
+                        showNewPasswordForm(accessToken);
+                        return true;
+                    }
+                }
+                
+                // Проверяем параметры в query URL (после ?)
+                const queryType = url.searchParams.get('type');
+                const queryAccessToken = url.searchParams.get('access_token');
+                
+                if (queryType === 'recovery' && queryAccessToken) {
+                    // Показываем форму для ввода нового пароля
+                    showNewPasswordForm(queryAccessToken);
+                    return true;
+                }
+                
+                return false;
+            }
+            
+            // Функция для отображения формы ввода нового пароля
+            function showNewPasswordForm(accessToken) {
+                // Скрываем основную форму авторизации
+                document.querySelector('.auth-container').style.display = 'none';
+                
+                // Показываем модальное окно для ввода нового пароля
+                const newPasswordModal = document.getElementById('new-password-modal');
+                newPasswordModal.style.display = 'block';
+                setTimeout(() => {
+                    newPasswordModal.classList.add('active');
+                }, 10);
+                
+                // Добавляем обработчик для формы ввода нового пароля
+                const newPasswordForm = document.getElementById('new-password-form');
+                const newPasswordInput = document.getElementById('new-password');
+                const confirmPasswordInput = document.getElementById('confirm-password');
+                const newPasswordSubmit = document.getElementById('new-password-submit');
+                
+                newPasswordForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const newPassword = newPasswordInput.value.trim();
+                    const confirmPassword = confirmPasswordInput.value.trim();
+                    
+                    // Валидация
+                    if (!newPassword || !confirmPassword) {
+                        showError(translations[currentLang].errorEmptyFields);
+                        return;
+                    }
+                    
+                    if (newPassword !== confirmPassword) {
+                        showError('Пароли не совпадают');
+                        return;
+                    }
+                    
+                    newPasswordSubmit.disabled = true;
+                    
+                    try {
+                        // Обновляем пароль через Supabase
+                        const { data, error } = await supabaseClient.auth.updateUser({
+                            password: newPassword
+                        });
+                        
+                        if (error) throw error;
+                        
+                        showSuccess('Пароль успешно обновлен');
+                        
+                        // Перенаправляем на страницу входа через 2 секунды
+                        setTimeout(() => {
+                            window.location.href = '/auth';
+                        }, 2000);
+                    } catch (error) {
+                        console.error('Ошибка при обновлении пароля:', error);
+                        showError('Ошибка при обновлении пароля: ' + error.message);
+                        newPasswordSubmit.disabled = false;
+                    }
+                });
+            }
+            
+            // Проверяем, находимся ли мы на странице сброса пароля
+            const isResetPasswordPage = checkResetPasswordPage();
+            
+            // Если мы не на странице сброса пароля, проверяем авторизацию
+            if (!isResetPasswordPage) {
+                checkAuth();
+            }
             
             // Функция для сброса пароля
             async function resetPassword(email) {
                 try {
                     const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-                        redirectTo: window.location.origin + '/auth/reset-password'
+                        redirectTo: window.location.origin
                     });
                     
                     if (error) throw error;
@@ -846,6 +941,27 @@
                         <input type="email" id="reset-email" class="form-input" placeholder="Email" required>
                     </div>
                     <button type="submit" class="btn btn-primary" id="reset-submit">Отправить ссылку для сброса</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для ввода нового пароля -->
+    <div id="new-password-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="new-password-title">Установка нового пароля</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="new-password-form" class="auth-form">
+                    <div class="form-group">
+                        <input type="password" id="new-password" class="form-input" placeholder="Новый пароль" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="confirm-password" class="form-input" placeholder="Подтвердите пароль" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="new-password-submit">Сохранить новый пароль</button>
                 </form>
             </div>
         </div>
