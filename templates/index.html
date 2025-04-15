@@ -624,6 +624,32 @@
         .mobile-sidebar-user {
             margin-top: auto;
         }
+
+        @media (hover: none) {
+        .mobile-btn:hover,
+        .chat-item:hover,
+        .sidebar-user:hover,
+        .new-chat-btn:hover {
+            background-color: transparent !important;
+        }
+        }
+
+        /* Убирает голубую подсветку на iOS */
+        .mobile-btn,
+        .chat-item,
+        .sidebar-user,
+        .new-chat-btn {
+        -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Опционально: добавляет анимацию для :active */
+        .mobile-btn:active,
+        .chat-item:active,
+        .sidebar-user:active,
+        .new-chat-btn:active {
+        background-color: rgba(0, 127, 231, 0.1) !important;
+        transition: background-color 0.1s;
+        }
     </style>
 </head>
 <body>
