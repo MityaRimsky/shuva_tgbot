@@ -203,6 +203,126 @@
             text-decoration: underline;
         }
         
+        /* Стили для блока под формой авторизации */
+        .auth-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 48px;
+            width: 100%;
+            border-top: 1px solid var(--border-color); /* или просто #e0e0e0 */
+            padding-top: 24px; /* добавь отступ от линии */
+        }
+        
+        /* Стили для "забыли пароль?" */
+        .forgot-password a {
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Стили для переключателя языка */
+        .language-switcher {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .language-option {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        
+        .language-option:hover {
+            transform: scale(1.1);
+        }
+        
+        .language-option.active {
+            border-color: var(--primary-color);
+        }
+        
+        .language-option img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* Стили для модального окна */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .modal.active {
+            opacity: 1;
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            background-color: var(--bg-color);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s;
+        }
+        
+        .modal.active .modal-content {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .modal-header h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin: 0;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: var(--text-color);
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
         /* Адаптивный дизайн */
         @media (max-width: 480px) {
             .auth-container {
@@ -247,6 +367,20 @@
             <span id="toggle-text">Нет аккаунта?</span>
             <a id="toggle-link">Зарегистрироваться</a>
         </div>
+        
+        <div class="auth-footer">
+            <div class="forgot-password">
+                <a id="forgot-password-link">Забыли пароль?</a>
+            </div>
+            <div class="language-switcher">
+                <div class="language-option" data-lang="ru">
+                    <img src="/static/images/flag_ru.svg" alt="Русский">
+                </div>
+                <div class="language-option" data-lang="en">
+                    <img src="/static/images/flag_us.svg" alt="English">
+                </div>
+            </div>
+        </div>
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -270,6 +404,58 @@
                 return;
             }
             
+            // Объект с переводами
+            const translations = {
+                ru: {
+                    email: "Email",
+                    password: "Пароль",
+                    login: "Войти",
+                    register: "Зарегистрироваться",
+                    forgotPassword: "Забыли пароль?",
+                    noAccount: "Нет аккаунта?",
+                    haveAccount: "Уже есть аккаунт?",
+                    resetPassword: "Сброс пароля",
+                    resetSubmit: "Отправить ссылку для сброса",
+                    resetSuccess: "Инструкции по сбросу пароля отправлены на ваш email",
+                    loginWithGoogle: "Войти с Google",
+                    or: "или",
+                    errorEmptyFields: "Пожалуйста, заполните все поля",
+                    errorInvalidCredentials: "Неверный email или пароль",
+                    errorEmailNotConfirmed: "Email не подтвержден. Проверьте вашу почту",
+                    errorPasswordLength: "Пароль должен содержать не менее 6 символов",
+                    errorUserExists: "Пользователь с таким email уже существует",
+                    errorGeneric: "Произошла ошибка при аутентификации",
+                    errorGoogleSignIn: "Ошибка при входе через Google",
+                    errorSessionSave: "Ошибка при сохранении сессии",
+                    successRegistration: "Регистрация успешна",
+                    successEmailConfirmation: "На ваш email отправлено письмо для подтверждения регистрации"
+                },
+                en: {
+                    email: "Email",
+                    password: "Password",
+                    login: "Log in",
+                    register: "Sign up",
+                    forgotPassword: "Forgot password?",
+                    noAccount: "Don't have an account?",
+                    haveAccount: "Already have an account?",
+                    resetPassword: "Reset Password",
+                    resetSubmit: "Send Reset Link",
+                    resetSuccess: "Password reset instructions have been sent to your email",
+                    loginWithGoogle: "Sign in with Google",
+                    or: "or",
+                    errorEmptyFields: "Please fill in all fields",
+                    errorInvalidCredentials: "Invalid email or password",
+                    errorEmailNotConfirmed: "Email not confirmed. Please check your inbox",
+                    errorPasswordLength: "Password should be at least 6 characters",
+                    errorUserExists: "User with this email already exists",
+                    errorGeneric: "An error occurred during authentication",
+                    errorGoogleSignIn: "Error signing in with Google",
+                    errorSessionSave: "Error saving session",
+                    successRegistration: "Registration successful",
+                    successEmailConfirmation: "A confirmation email has been sent to your address"
+                }
+            };
+            
             // Элементы DOM
             const authForm = document.getElementById('auth-form');
             const emailInput = document.getElementById('email');
@@ -280,9 +466,18 @@
             const toggleLink = document.getElementById('toggle-link');
             const errorMessage = document.getElementById('error-message');
             const successMessage = document.getElementById('success-message');
+            const forgotPasswordLink = document.getElementById('forgot-password-link');
+            const resetPasswordModal = document.getElementById('reset-password-modal');
+            const resetPasswordForm = document.getElementById('reset-password-form');
+            const resetEmailInput = document.getElementById('reset-email');
+            const resetSubmit = document.getElementById('reset-submit');
+            const resetTitle = document.getElementById('reset-title');
+            const closeModalButtons = document.querySelectorAll('.close-modal');
+            const languageOptions = document.querySelectorAll('.language-option');
             
-            // Состояние формы (вход или регистрация)
+            // Состояние формы и приложения
             let isLogin = true;
+            let currentLang = localStorage.getItem('app_language') || 'ru';
             
             // Функция для отображения ошибки
             function showError(message) {
@@ -491,6 +686,142 @@
             // Проверяем авторизацию при загрузке страницы
             checkAuth();
             
+            // Функция для сброса пароля
+            async function resetPassword(email) {
+                try {
+                    const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                        redirectTo: window.location.origin + '/auth/reset-password'
+                    });
+                    
+                    if (error) throw error;
+                    
+                    return { success: true };
+                } catch (error) {
+                    console.error('Ошибка при сбросе пароля:', error);
+                    return { success: false, error: error.message };
+                }
+            }
+            
+            // Функция для открытия модального окна сброса пароля
+            function openResetPasswordModal() {
+                resetPasswordModal.style.display = 'block';
+                setTimeout(() => {
+                    resetPasswordModal.classList.add('active');
+                }, 10);
+                
+                // Предзаполняем email, если он был введен
+                resetEmailInput.value = emailInput.value;
+            }
+            
+            // Функция для закрытия модального окна сброса пароля
+            function closeResetPasswordModal() {
+                resetPasswordModal.classList.remove('active');
+                setTimeout(() => {
+                    resetPasswordModal.style.display = 'none';
+                }, 300);
+            }
+            
+            // Функция для переключения языка
+            function switchLanguage(lang) {
+                currentLang = lang;
+                
+                // Сохраняем выбранный язык
+                localStorage.setItem('app_language', lang);
+                
+                // Обновляем активный класс
+                languageOptions.forEach(option => {
+                    option.classList.toggle('active', option.dataset.lang === lang);
+                });
+                
+                // Обновляем тексты на странице
+                updatePageTexts();
+                
+                // Обновляем HTML-атрибут lang
+                document.documentElement.lang = lang;
+            }
+            
+            // Функция для обновления текстов на странице
+            function updatePageTexts() {
+                // Обновляем тексты в форме авторизации
+                emailInput.placeholder = translations[currentLang].email;
+                passwordInput.placeholder = translations[currentLang].password;
+                
+                if (isLogin) {
+                    authSubmit.textContent = translations[currentLang].login;
+                    toggleText.textContent = translations[currentLang].noAccount;
+                    toggleLink.textContent = translations[currentLang].register;
+                } else {
+                    authSubmit.textContent = translations[currentLang].register;
+                    toggleText.textContent = translations[currentLang].haveAccount;
+                    toggleLink.textContent = translations[currentLang].login;
+                }
+                
+                // Обновляем текст в блоке "или"
+                document.querySelector('.divider span').textContent = translations[currentLang].or;
+                
+                // Обновляем текст в кнопке Google
+                document.querySelector('#google-signin span').textContent = translations[currentLang].loginWithGoogle;
+                
+                // Обновляем текст в ссылке "забыли пароль?"
+                forgotPasswordLink.textContent = translations[currentLang].forgotPassword;
+                
+                // Обновляем тексты в модальном окне сброса пароля
+                resetTitle.textContent = translations[currentLang].resetPassword;
+                resetEmailInput.placeholder = translations[currentLang].email;
+                resetSubmit.textContent = translations[currentLang].resetSubmit;
+            }
+            
+            // Обработчик для ссылки "забыли пароль?"
+            forgotPasswordLink.addEventListener('click', openResetPasswordModal);
+            
+            // Обработчик для кнопок закрытия модального окна
+            closeModalButtons.forEach(button => {
+                button.addEventListener('click', closeResetPasswordModal);
+            });
+            
+            // Обработчик клика вне модального окна для его закрытия
+            window.addEventListener('click', function(event) {
+                if (event.target === resetPasswordModal) {
+                    closeResetPasswordModal();
+                }
+            });
+            
+            // Обработчик формы сброса пароля
+            resetPasswordForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const email = resetEmailInput.value.trim();
+                
+                if (!email) {
+                    showError(translations[currentLang].errorEmptyFields);
+                    return;
+                }
+                
+                resetSubmit.disabled = true;
+                
+                const result = await resetPassword(email);
+                
+                if (result.success) {
+                    showSuccess(translations[currentLang].resetSuccess);
+                    closeResetPasswordModal();
+                } else {
+                    showError(result.error);
+                }
+                
+                resetSubmit.disabled = false;
+            });
+            
+            // Обработчики для переключения языка
+            languageOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const lang = this.dataset.lang;
+                    switchLanguage(lang);
+                });
+            });
+            
+            // Инициализация языка
+            switchLanguage(currentLang);
+            
             // Добавляем обработчик изменения состояния аутентификации
             supabaseClient.auth.onAuthStateChange((event, session) => {
                 if (event === 'SIGNED_IN' && session) {
@@ -501,5 +832,23 @@
             });
         });
     </script>
+    
+    <!-- Модальное окно для сброса пароля -->
+    <div id="reset-password-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="reset-title">Сброс пароля</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="reset-password-form" class="auth-form">
+                    <div class="form-group">
+                        <input type="email" id="reset-email" class="form-input" placeholder="Email" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="reset-submit">Отправить ссылку для сброса</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

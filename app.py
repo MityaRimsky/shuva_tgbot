@@ -79,6 +79,11 @@ def auth():
     
     return render_template('auth.html')
 
+@app.route('/auth/reset-password')
+def reset_password():
+    # Страница для сброса пароля после перехода по ссылке из email
+    return render_template('auth.html')
+
 @app.route('/api/chat', methods=['POST'])
 @auth_required
 def chat():
