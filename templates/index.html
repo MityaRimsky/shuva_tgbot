@@ -625,6 +625,52 @@
         .mobile-sidebar-user {
             margin-top: auto;
         }
+        
+        /* Стили для секции профиля */
+        .profile-section {
+            width: 100%;
+            margin-bottom: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .profile-section h3 {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+        
+        /* Стили для переключателя языка */
+        .language-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .language-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        
+        .language-option:hover {
+            transform: scale(1.1);
+        }
+        
+        .language-option.active {
+            border-color: var(--primary-color);
+        }
+        
+        .language-option img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
         @media (hover: none) {
         .mobile-btn:hover,
@@ -662,13 +708,13 @@
         <div class="sidebar-header">
             <div class="logo">
                 <img src="/static/images/logo.svg" alt="Sefaria Logo" class="logo-image" style="width: 30px; height: 30px; border-radius: 50%;">
-                <span>SHUVA</span>
+                <span data-i18n="app.name">SHUVA</span>
             </div>
         </div>
         <div class="sidebar-content">
             <button class="new-chat-btn" id="desktop-new-chat">
                 <i class="fas fa-pen-to-square"></i>
-                Новый чат
+                <span data-i18n="chat.new">Новый чат</span>
             </button>
             <div class="chat-history" id="desktop-history">
                 <!-- История чатов будет добавлена через JavaScript -->
@@ -690,7 +736,7 @@
         <div class="mobile-nav-content">
             <div class="mobile-logo">
                 <img src="/static/images/logo.svg" alt="Sefaria Logo" class="logo-image" style="width: 30px; height: 30px; border-radius: 50%;">
-                <span>SHUVA</span>
+                <span data-i18n="app.name">SHUVA</span>
             </div>
             <div class="mobile-actions">
                 <button class="mobile-btn" id="mobile-new-chat">
@@ -737,7 +783,7 @@
                 <div class="welcome-icon">
                     <img src="/static/images/logo.svg" alt="Sefaria Logo" style="width: 100%; height: 100%; border-radius: 50%;">
                 </div>
-                <h2>Чем могу вам помочь?</h2>
+                <h2 data-i18n="welcome.message">Чем могу вам помочь?</h2>
             </div>
         </div>
         
@@ -759,13 +805,13 @@
         
         <div class="input-container">
             <div class="input-wrapper">
-                <textarea id="message-input" placeholder="Спросите что-нибудь..." rows="1"></textarea>
+                <textarea id="message-input" placeholder="Спросите что-нибудь..." data-i18n-placeholder="input.placeholder" rows="1"></textarea>
                 <button id="send-button">
                     <i class="fas fa-paper-plane" id="send-icon"></i>
                     <i class="fas fa-stop" id="stop-icon" style="display: none;"></i>
                 </button>
             </div>
-            <div class="input-info">
+            <div class="input-info" data-i18n="footer.powered">
                 Powered by Taiga Performance
             </div>
         </div>
@@ -775,7 +821,7 @@
     <div id="profile-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Профиль</h2>
+                <h2 data-i18n="profile.title">Профиль</h2>
                 <button class="close-modal">&times;</button>
             </div>
             <div class="modal-body">
@@ -785,13 +831,31 @@
                 <div class="profile-info">
                     <p id="profile-email">email@example.com</p>
                 </div>
-                <button id="logout-button" class="logout-button">Выйти из аккаунта</button>
+                
+                <!-- Переключатель языка -->
+                <div class="profile-section">
+                    <h3 data-i18n="profile.language">Язык</h3>
+                    <div class="language-switcher">
+                        <div class="language-option" data-lang="ru">
+                            <img src="/static/images/flag_ru.svg" alt="Русский">
+                        </div>
+                        <div class="language-option" data-lang="en">
+                            <img src="/static/images/flag_us.svg" alt="English">
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="logout-button" class="logout-button" data-i18n="profile.logout">Выйти из аккаунта</button>
             </div>
         </div>
     </div>
     
+    <script src="/static/js/i18n.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Инициализируем модуль i18n
+            await window.i18nModule.initI18n();
+            
             const chatContainer = document.getElementById('chat-container');
             const messageInput = document.getElementById('message-input');
             const sendButton = document.getElementById('send-button');
@@ -806,6 +870,7 @@
             const overlay = document.getElementById('overlay');
             const typingIndicator = document.getElementById('typing-indicator');
             const welcomeMessage = document.getElementById('welcome-message');
+            const languageOptions = document.querySelectorAll('.language-option');
             
             let controller = null; // Для AbortController
             let chatHistory = []; // Для хранения истории чатов
@@ -1191,6 +1256,64 @@
             mobileHistoryBtn.addEventListener('click', openMobileHistory);
             mobileHistoryClose.addEventListener('click', closeMobileHistory);
             overlay.addEventListener('click', closeMobileHistory);
+            
+            // Открытие модального окна профиля
+            const profileModal = document.getElementById('profile-modal');
+            const sidebarUser = document.getElementById('sidebar-user');
+            const mobileSidebarUser = document.getElementById('mobile-sidebar-user');
+            const closeModalButtons = document.querySelectorAll('.close-modal');
+            
+            function openProfileModal() {
+                profileModal.style.display = 'block';
+                setTimeout(() => {
+                    profileModal.classList.add('active');
+                }, 10);
+            }
+            
+            function closeProfileModal() {
+                profileModal.classList.remove('active');
+                setTimeout(() => {
+                    profileModal.style.display = 'none';
+                }, 300);
+            }
+            
+            sidebarUser.addEventListener('click', openProfileModal);
+            mobileSidebarUser.addEventListener('click', openProfileModal);
+            
+            closeModalButtons.forEach(button => {
+                button.addEventListener('click', closeProfileModal);
+            });
+            
+            // Закрытие модального окна при клике вне его области
+            window.addEventListener('click', function(event) {
+                if (event.target === profileModal) {
+                    closeProfileModal();
+                }
+            });
+            
+            // Обработчики для переключения языка
+            languageOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const lang = this.dataset.lang;
+                    
+                    // Обновляем активный класс
+                    languageOptions.forEach(opt => {
+                        opt.classList.toggle('active', opt.dataset.lang === lang);
+                    });
+                    
+                    // Изменяем язык через модуль i18n
+                    window.i18nModule.changeLanguage(lang);
+                    
+                    // Обновляем тексты на странице
+                    window.i18nModule.updatePageTexts();
+                });
+            });
+            
+            // Устанавливаем активный класс для текущего языка
+            const currentLang = localStorage.getItem('app_language') || 'ru';
+            languageOptions.forEach(option => {
+                option.classList.toggle('active', option.dataset.lang === currentLang);
+            });
             
             // Загружаем историю при загрузке страницы
             loadHistory();

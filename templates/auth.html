@@ -384,8 +384,12 @@
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/static/js/i18n.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
+            // Инициализируем модуль i18n
+            await window.i18nModule.initI18n();
+            
             // Получаем конфигурацию Supabase с сервера
             let supabaseClient;
             
@@ -403,58 +407,6 @@
                 showError('Ошибка при инициализации: не удалось получить конфигурацию');
                 return;
             }
-            
-            // Объект с переводами
-            const translations = {
-                ru: {
-                    email: "Email",
-                    password: "Пароль",
-                    login: "Войти",
-                    register: "Зарегистрироваться",
-                    forgotPassword: "Забыли пароль?",
-                    noAccount: "Нет аккаунта?",
-                    haveAccount: "Уже есть аккаунт?",
-                    resetPassword: "Сброс пароля",
-                    resetSubmit: "Отправить ссылку для сброса",
-                    resetSuccess: "Инструкции по сбросу пароля отправлены на ваш email",
-                    loginWithGoogle: "Войти с Google",
-                    or: "или",
-                    errorEmptyFields: "Пожалуйста, заполните все поля",
-                    errorInvalidCredentials: "Неверный email или пароль",
-                    errorEmailNotConfirmed: "Email не подтвержден. Проверьте вашу почту",
-                    errorPasswordLength: "Пароль должен содержать не менее 6 символов",
-                    errorUserExists: "Пользователь с таким email уже существует",
-                    errorGeneric: "Произошла ошибка при аутентификации",
-                    errorGoogleSignIn: "Ошибка при входе через Google",
-                    errorSessionSave: "Ошибка при сохранении сессии",
-                    successRegistration: "Регистрация успешна",
-                    successEmailConfirmation: "На ваш email отправлено письмо для подтверждения регистрации"
-                },
-                en: {
-                    email: "Email",
-                    password: "Password",
-                    login: "Log in",
-                    register: "Sign up",
-                    forgotPassword: "Forgot password?",
-                    noAccount: "Don't have an account?",
-                    haveAccount: "Already have an account?",
-                    resetPassword: "Reset Password",
-                    resetSubmit: "Send Reset Link",
-                    resetSuccess: "Password reset instructions have been sent to your email",
-                    loginWithGoogle: "Sign in with Google",
-                    or: "or",
-                    errorEmptyFields: "Please fill in all fields",
-                    errorInvalidCredentials: "Invalid email or password",
-                    errorEmailNotConfirmed: "Email not confirmed. Please check your inbox",
-                    errorPasswordLength: "Password should be at least 6 characters",
-                    errorUserExists: "User with this email already exists",
-                    errorGeneric: "An error occurred during authentication",
-                    errorGoogleSignIn: "Error signing in with Google",
-                    errorSessionSave: "Error saving session",
-                    successRegistration: "Registration successful",
-                    successEmailConfirmation: "A confirmation email has been sent to your address"
-                }
-            };
             
             // Элементы DOM
             const authForm = document.getElementById('auth-form');
@@ -507,14 +459,17 @@
             function toggleAuthMode() {
                 isLogin = !isLogin;
                 
+                // Обновляем тексты с использованием i18n
+                const t = window.i18nModule.t;
+                
                 if (isLogin) {
-                    authSubmit.textContent = 'Войти';
-                    toggleText.textContent = 'Нет аккаунта?';
-                    toggleLink.textContent = 'Зарегистрироваться';
+                    authSubmit.textContent = t('auth.login');
+                    toggleText.textContent = t('auth.noAccount');
+                    toggleLink.textContent = t('auth.register');
                 } else {
-                    authSubmit.textContent = 'Зарегистрироваться';
-                    toggleText.textContent = 'Уже есть аккаунт?';
-                    toggleLink.textContent = 'Войти';
+                    authSubmit.textContent = t('auth.register');
+                    toggleText.textContent = t('auth.haveAccount');
+                    toggleLink.textContent = t('auth.login');
                 }
             }
             
@@ -525,9 +480,11 @@
                 const email = emailInput.value.trim();
                 const password = passwordInput.value.trim();
                 
-                // Валидация
+                // Валидация с использованием i18n
+                const t = window.i18nModule.t;
+                
                 if (!email || !password) {
-                    showError('Пожалуйста, заполните все поля');
+                    showError(t('auth.errorEmptyFields'));
                     return;
                 }
                 
@@ -581,39 +538,44 @@
                             }
                         })
                         .catch(error => {
-                            showError('Ошибка при сохранении сессии: ' + error.message);
+                            // Используем i18n для сообщения об ошибке
+                            const t = window.i18nModule.t;
+                            showError(t('auth.errorSessionSave') + ': ' + error.message);
                         });
                     } else {
                         // Успешная регистрация
+                        const t = window.i18nModule.t;
+                        
                         if (response.data?.user?.identities?.length === 0) {
                             // Пользователь уже существует
-                            showError('Пользователь с таким email уже существует');
+                            showError(t('auth.errorUserExists'));
                         } else if (response.data?.user?.confirmation_sent_at) {
                             // Отправлено письмо для подтверждения
-                            showSuccess('На ваш email отправлено письмо для подтверждения регистрации');
+                            showSuccess(t('auth.confirmationEmailSent'));
                             // Переключаемся на форму входа
                             isLogin = false;
                             toggleAuthMode();
                         } else {
                             // Успешная регистрация без подтверждения email
-                            showSuccess('Регистрация успешна');
+                            showSuccess(t('auth.registrationSuccess'));
                             // Переключаемся на форму входа
                             isLogin = false;
                             toggleAuthMode();
                         }
                     }
                 } catch (error) {
-                    // Обработка ошибок
-                    let errorMsg = 'Произошла ошибка при аутентификации';
+                    // Обработка ошибок с использованием i18n
+                    const t = window.i18nModule.t;
+                    let errorMsg = t('auth.errorGeneric');
                     
                     if (error.message.includes('Invalid login credentials')) {
-                        errorMsg = 'Неверный email или пароль';
+                        errorMsg = t('auth.errorInvalidCredentials');
                     } else if (error.message.includes('Email not confirmed')) {
-                        errorMsg = 'Email не подтвержден. Проверьте вашу почту';
+                        errorMsg = t('auth.errorEmailNotConfirmed');
                     } else if (error.message.includes('Password should be at least')) {
-                        errorMsg = 'Пароль должен содержать не менее 6 символов';
+                        errorMsg = t('auth.errorPasswordLength');
                     } else if (error.message.includes('User already registered')) {
-                        errorMsg = 'Пользователь с таким email уже существует';
+                        errorMsg = t('auth.errorUserExists');
                     }
                     
                     showError(errorMsg);
@@ -637,7 +599,9 @@
                         throw new Error(error.message);
                     }
                 } catch (error) {
-                    showError('Ошибка при входе через Google');
+                    // Используем i18n для сообщения об ошибке
+                    const t = window.i18nModule.t;
+                    showError(t('auth.errorGoogleSignIn'));
                     console.error('Google sign-in error:', error);
                 }
             });
@@ -668,7 +632,9 @@
                         throw new Error('Ошибка при сохранении сессии');
                     }
                 } catch (error) {
-                    showError('Ошибка при сохранении сессии: ' + error.message);
+                    // Используем i18n для сообщения об ошибке
+                    const t = window.i18nModule.t;
+                    showError(t('auth.errorSessionSave') + ': ' + error.message);
                 }
             }
             
@@ -738,14 +704,16 @@
                     const newPassword = newPasswordInput.value.trim();
                     const confirmPassword = confirmPasswordInput.value.trim();
                     
-                    // Валидация
+                    // Валидация с использованием i18n
+                    const t = window.i18nModule.t;
+                    
                     if (!newPassword || !confirmPassword) {
-                        showError(translations[currentLang].errorEmptyFields);
+                        showError(t('auth.errorEmptyFields'));
                         return;
                     }
                     
                     if (newPassword !== confirmPassword) {
-                        showError('Пароли не совпадают');
+                        showError(t('auth.passwordsDoNotMatch'));
                         return;
                     }
                     
@@ -759,7 +727,8 @@
                         
                         if (error) throw error;
                         
-                        showSuccess('Пароль успешно обновлен');
+                        // Используем i18n для сообщения об успешном обновлении пароля
+                        showSuccess(t('auth.passwordUpdated'));
                         
                         // Перенаправляем на страницу входа через 2 секунды
                         setTimeout(() => {
@@ -767,7 +736,7 @@
                         }, 2000);
                     } catch (error) {
                         console.error('Ошибка при обновлении пароля:', error);
-                        showError('Ошибка при обновлении пароля: ' + error.message);
+                        showError(t('auth.errorPasswordUpdate') + ': ' + error.message);
                         newPasswordSubmit.disabled = false;
                     }
                 });
@@ -817,53 +786,65 @@
             }
             
             // Функция для переключения языка
-            function switchLanguage(lang) {
+            async function switchLanguage(lang) {
                 currentLang = lang;
-                
-                // Сохраняем выбранный язык
-                localStorage.setItem('app_language', lang);
                 
                 // Обновляем активный класс
                 languageOptions.forEach(option => {
                     option.classList.toggle('active', option.dataset.lang === lang);
                 });
                 
+                // Используем функцию changeLanguage из модуля i18n
+                await window.i18nModule.changeLanguage(lang);
+                
                 // Обновляем тексты на странице
                 updatePageTexts();
-                
-                // Обновляем HTML-атрибут lang
-                document.documentElement.lang = lang;
             }
             
             // Функция для обновления текстов на странице
             function updatePageTexts() {
+                // Используем функцию t из модуля i18n для перевода
+                const t = window.i18nModule.t;
+                
                 // Обновляем тексты в форме авторизации
-                emailInput.placeholder = translations[currentLang].email;
-                passwordInput.placeholder = translations[currentLang].password;
+                emailInput.placeholder = t('auth.email');
+                passwordInput.placeholder = t('auth.password');
                 
                 if (isLogin) {
-                    authSubmit.textContent = translations[currentLang].login;
-                    toggleText.textContent = translations[currentLang].noAccount;
-                    toggleLink.textContent = translations[currentLang].register;
+                    authSubmit.textContent = t('auth.login');
+                    toggleText.textContent = t('auth.noAccount');
+                    toggleLink.textContent = t('auth.register');
                 } else {
-                    authSubmit.textContent = translations[currentLang].register;
-                    toggleText.textContent = translations[currentLang].haveAccount;
-                    toggleLink.textContent = translations[currentLang].login;
+                    authSubmit.textContent = t('auth.register');
+                    toggleText.textContent = t('auth.haveAccount');
+                    toggleLink.textContent = t('auth.login');
                 }
                 
                 // Обновляем текст в блоке "или"
-                document.querySelector('.divider span').textContent = translations[currentLang].or;
+                document.querySelector('.divider span').textContent = t('auth.or');
                 
                 // Обновляем текст в кнопке Google
-                document.querySelector('#google-signin span').textContent = translations[currentLang].loginWithGoogle;
+                document.querySelector('#google-signin span').textContent = t('auth.loginWithGoogle');
                 
                 // Обновляем текст в ссылке "забыли пароль?"
-                forgotPasswordLink.textContent = translations[currentLang].forgotPassword;
+                forgotPasswordLink.textContent = t('auth.forgotPassword');
                 
                 // Обновляем тексты в модальном окне сброса пароля
-                resetTitle.textContent = translations[currentLang].resetPassword;
-                resetEmailInput.placeholder = translations[currentLang].email;
-                resetSubmit.textContent = translations[currentLang].resetSubmit;
+                resetTitle.textContent = t('auth.resetPassword');
+                resetEmailInput.placeholder = t('auth.email');
+                resetSubmit.textContent = t('auth.resetSubmit');
+                
+                // Обновляем тексты в модальном окне нового пароля
+                document.getElementById('new-password-title').textContent = t('auth.setNewPassword');
+                document.getElementById('new-password').placeholder = t('auth.newPassword');
+                document.getElementById('confirm-password').placeholder = t('auth.confirmPassword');
+                document.getElementById('new-password-submit').textContent = t('auth.saveNewPassword');
+                
+                // Обновляем заголовок страницы
+                document.title = `${t('app.name')} - ${t('auth.login')}`;
+                
+                // Обновляем текст логотипа
+                document.querySelector('.logo-text').textContent = t('app.name');
             }
             
             // Обработчик для ссылки "забыли пароль?"
@@ -887,8 +868,11 @@
                 
                 const email = resetEmailInput.value.trim();
                 
+                // Валидация с использованием i18n
+                const t = window.i18nModule.t;
+                
                 if (!email) {
-                    showError(translations[currentLang].errorEmptyFields);
+                    showError(t('auth.errorEmptyFields'));
                     return;
                 }
                 
@@ -897,7 +881,7 @@
                 const result = await resetPassword(email);
                 
                 if (result.success) {
-                    showSuccess(translations[currentLang].resetSuccess);
+                    showSuccess(t('auth.resetSuccess'));
                     closeResetPasswordModal();
                 } else {
                     showError(result.error);

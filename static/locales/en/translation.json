@@ -1,0 +1,76 @@
+{
+  "app": {
+    "name": "SHUVA"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "login": "Log in",
+    "register": "Sign up",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "resetPassword": "Reset Password",
+    "resetSubmit": "Send Reset Link",
+    "resetSuccess": "Password reset instructions have been sent to your email",
+    "loginWithGoogle": "Sign in with Google",
+    "or": "or",
+    "errorEmptyFields": "Please fill in all fields",
+    "errorInvalidCredentials": "Invalid email or password",
+    "errorEmailNotConfirmed": "Email not confirmed. Please check your inbox",
+    "errorPasswordLength": "Password should be at least 6 characters",
+    "errorUserExists": "User with this email already exists",
+    "errorGeneric": "An error occurred during authentication",
+    "errorGoogleSignIn": "Error signing in with Google",
+    "errorSessionSave": "Error saving session",
+    "successRegistration": "Registration successful",
+    "successEmailConfirmation": "A confirmation email has been sent to your address",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "saveNewPassword": "Save New Password",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "passwordUpdated": "Password successfully updated",
+    "errorPasswordUpdate": "Error updating password",
+    "setNewPassword": "Set New Password"
+  },
+  "common": {
+    "appName": "SHUVA",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "send": "Send",
+    "search": "Search",
+    "settings": "Settings",
+    "profile": "Profile",
+    "logout": "Log out"
+  },
+  "chat": {
+    "new": "New chat",
+    "placeholder": "Type your question...",
+    "send": "Send",
+    "typing": "typing...",
+    "noMessages": "No messages",
+    "startConversation": "Start a conversation",
+    "errorSending": "Error sending message",
+    "retry": "Retry"
+  },
+  "welcome": {
+    "message": "How can I help you?"
+  },
+  "input": {
+    "placeholder": "Ask something..."
+  },
+  "footer": {
+    "powered": "Powered by Taiga Performance"
+  },
+  "profile": {
+    "title": "Profile",
+    "language": "Language",
+    "russian": "Russian",
+    "english": "English",
+    "logout": "Log out"
+  }
+}
