@@ -32,6 +32,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Инициализация Supabase
         supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
         
+        // Делаем клиент доступным глобально
+        window.supabaseClient = supabaseClient;
+        
         // Инициализация элементов DOM
         initElements();
         

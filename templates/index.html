@@ -850,7 +850,9 @@
         </div>
     </div>
     
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/static/js/i18n.js"></script>
+    <script src="/static/js/chat-service.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
             // Инициализируем модуль i18n
@@ -873,8 +875,10 @@
             const languageOptions = document.querySelectorAll('.language-option');
             
             let controller = null; // Для AbortController
-            let chatHistory = []; // Для хранения истории чатов
-            let currentChatId = 'chat-' + Date.now(); // Уникальный ID для текущего чата
+            let currentSessionId = null; // ID текущей сессии чата
+            
+            // Инициализируем сервис чатов
+            await window.chatService.init();
             
             // Автоматическое изменение высоты текстового поля
             messageInput.addEventListener('input', function() {
@@ -918,8 +922,8 @@
                 }
             }
             
-            // Функция для добавления сообщения в чат
-            function addMessage(message, isUser) {
+            // Функция для добавления сообщения в UI (без сохранения в БД)
+            function addMessageToUI(message, isUser) {
                 // Удаляем приветственное сообщение при добавлении первого сообщения
                 const welcomeMessage = document.getElementById('welcome-message');
                 if (welcomeMessage) {
@@ -960,83 +964,121 @@
                 
                 // Прокрутка вниз с небольшой задержкой
                 scrollChatToBottom();
-                
-                // Сохраняем сообщение в истории текущего чата
-                chatHistory.push({
-                    chatId: currentChatId,
-                    isUser: isUser,
-                    message: message,
-                    timestamp: new Date().toISOString()
-                });
-                
-                // Сохраняем историю в localStorage
-                saveHistory();
             }
             
-            // Функция для сохранения истории в localStorage
-            function saveHistory() {
-                localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
-            }
-            
-            // Функция для загрузки истории из localStorage
-            function loadHistory() {
-                const savedHistory = localStorage.getItem('chatHistory');
-                if (savedHistory) {
-                    chatHistory = JSON.parse(savedHistory);
-                    
-                    // Получаем уникальные ID чатов
-                    const chatIds = [...new Set(chatHistory.map(item => item.chatId))];
-                    
-                    // Если есть сохраненные чаты, загружаем последний
-                    if (chatIds.length > 0) {
-                        currentChatId = chatIds[chatIds.length - 1];
-                        loadChat(currentChatId);
+            // Функция для добавления сообщения в чат и сохранения в БД
+            async function addMessage(message, isUser) {
+                // Добавляем сообщение в UI
+                addMessageToUI(message, isUser);
+                
+                // Сохраняем сообщение в Supabase
+                if (currentSessionId) {
+                    try {
+                        await window.chatService.addChatMessage(
+                            currentSessionId, 
+                            message, 
+                            isUser
+                        );
                         
-                        // Обновляем список чатов
-                        updateChatList(chatIds);
+                        // Если это первое сообщение пользователя, обновляем заголовок сессии
+                        if (isUser) {
+                            const sessions = await window.chatService.getChatSessions();
+                            updateChatList(sessions);
+                        }
+                    } catch (error) {
+                        console.error('Ошибка при сохранении сообщения:', error);
+                        // Не показываем ошибку пользователю, чтобы не прерывать взаимодействие
                     }
                 }
-                
-                // Проверяем, нужно ли показать приветственное сообщение
-                checkMessagesAndToggleWelcome();
+            }
+            
+            // Функция для загрузки истории чатов
+            async function loadHistory() {
+                try {
+                    // Проверяем, авторизован ли пользователь
+                    const { data: authData } = await window.supabaseClient.auth.getUser();
+                    
+                    if (!authData || !authData.user) {
+                        // Если пользователь не авторизован, показываем приветственное сообщение
+                        checkMessagesAndToggleWelcome();
+                        return;
+                    }
+                    
+                    // Получаем список сессий чата
+                    const sessions = await window.chatService.getChatSessions();
+                    
+                    if (sessions.length > 0) {
+                        // Загружаем последнюю активную сессию
+                        currentSessionId = sessions[0].id;
+                        await loadChat(currentSessionId);
+                        
+                        // Обновляем список чатов
+                        updateChatList(sessions);
+                    } else {
+                        // Если нет сохраненных сессий, создаем новую
+                        const newSession = await window.chatService.createChatSession();
+                        if (newSession) {
+                            currentSessionId = newSession.id;
+                            updateChatList([newSession]);
+                        }
+                    }
+                    
+                    // Проверяем, нужно ли показать приветственное сообщение
+                    checkMessagesAndToggleWelcome();
+                } catch (error) {
+                    console.error('Ошибка при загрузке истории:', error);
+                    
+                    // Если ошибка связана с авторизацией, не показываем ее пользователю
+                    if (error.message && error.message.includes('авторизован')) {
+                        checkMessagesAndToggleWelcome();
+                    } else {
+                        showError('Не удалось загрузить историю чатов');
+                    }
+                }
             }
             
             // Функция для загрузки конкретного чата
-            function loadChat(chatId) {
-                // Очищаем контейнер чата
-                chatContainer.innerHTML = '';
-                
-                // Загружаем сообщения выбранного чата
-                const chatMessages = chatHistory.filter(item => item.chatId === chatId);
-                
-                // Добавляем сообщения в чат
-                chatMessages.forEach(item => {
-                    addMessage(item.message, item.isUser);
-                });
-                
-                // Обновляем текущий ID чата
-                currentChatId = chatId;
-                
-                // Обновляем активный элемент в списке чатов
-                document.querySelectorAll('.chat-item').forEach(item => {
-                    item.classList.remove('active');
-                    if (item.dataset.chatId === chatId) {
-                        item.classList.add('active');
-                    }
-                });
-                
-                // Закрываем мобильное меню истории
-                closeMobileHistory();
-                
-                // Проверяем, нужно ли показать приветственное сообщение
-                checkMessagesAndToggleWelcome();
-                
-                // Прокручиваем чат вниз после загрузки
-                scrollChatToBottom();
+            async function loadChat(sessionId) {
+                try {
+                    // Очищаем контейнер чата
+                    chatContainer.innerHTML = '';
+                    
+                    // Загружаем сообщения выбранного чата
+                    const messages = await window.chatService.getChatMessages(sessionId);
+                    
+                    // Добавляем сообщения в чат
+                    messages.forEach(message => {
+                        const isUser = message.sender === 'user';
+                        addMessageToUI(message.content, isUser);
+                    });
+                    
+                    // Обновляем текущий ID сессии
+                    currentSessionId = sessionId;
+                    
+                    // Обновляем активный элемент в списке чатов
+                    document.querySelectorAll('.chat-item').forEach(item => {
+                        item.classList.remove('active');
+                        if (item.dataset.sessionId === sessionId) {
+                            item.classList.add('active');
+                        }
+                    });
+                    
+                    // Закрываем мобильное меню истории
+                    closeMobileHistory();
+                    
+                    // Проверяем, нужно ли показать приветственное сообщение
+                    checkMessagesAndToggleWelcome();
+                    
+                    // Прокручиваем чат вниз после загрузки
+                    scrollChatToBottom();
+                } catch (error) {
+                    console.error('Ошибка при загрузке чата:', error);
+                    showError('Не удалось загрузить сообщения чата');
+                }
             }
             
             // Функция для обновления списка чатов
-            function updateChatList(chatIds) {
+            function updateChatList(sessions) {
                 const desktopHistory = document.getElementById('desktop-history');
                 const mobileHistoryList = document.getElementById('mobile-history-list');
                 
@@ -1045,63 +1087,90 @@
                 mobileHistoryList.innerHTML = '';
                 
                 // Добавляем чаты в списки
-                chatIds.forEach((chatId, index) => {
-                    // Находим первое сообщение пользователя в чате для названия
-                    const firstUserMessage = chatHistory.find(item => item.chatId === chatId && item.isUser);
-                    const chatName = firstUserMessage 
-                        ? firstUserMessage.message.substring(0, 20) + (firstUserMessage.message.length > 20 ? '...' : '')
-                        : `Чат ${index + 1}`;
-                    
+                sessions.forEach((session, index) => {
                     // Создаем элемент для десктопного списка
                     const desktopItem = document.createElement('div');
                     desktopItem.classList.add('chat-item');
-                    desktopItem.dataset.chatId = chatId;
-                    if (chatId === currentChatId) desktopItem.classList.add('active');
+                    desktopItem.dataset.sessionId = session.id;
+                    if (session.id === currentSessionId) desktopItem.classList.add('active');
+                    
+                    // Используем title или создаем название по умолчанию
+                    const chatName = session.title || `Чат ${index + 1}`;
+                    
                     desktopItem.innerHTML = `
                         <i class="fas fa-comment"></i>
                         <span>${chatName}</span>
                     `;
-                    desktopItem.addEventListener('click', () => loadChat(chatId));
+                    desktopItem.addEventListener('click', () => loadChat(session.id));
                     desktopHistory.appendChild(desktopItem);
                     
                     // Создаем элемент для мобильного списка
                     const mobileItem = document.createElement('div');
                     mobileItem.classList.add('chat-item');
-                    mobileItem.dataset.chatId = chatId;
-                    if (chatId === currentChatId) mobileItem.classList.add('active');
+                    mobileItem.dataset.sessionId = session.id;
+                    if (session.id === currentSessionId) mobileItem.classList.add('active');
                     mobileItem.innerHTML = `
                         <i class="fas fa-comment"></i>
                         <span>${chatName}</span>
                     `;
-                    mobileItem.addEventListener('click', () => loadChat(chatId));
+                    mobileItem.addEventListener('click', () => loadChat(session.id));
                     mobileHistoryList.appendChild(mobileItem);
                 });
             }
             
             // Функция для создания нового чата
-            function createNewChat() {
-                // Проверяем, пустой ли текущий чат
-                const currentChatMessages = chatHistory.filter(item => item.chatId === currentChatId);
-                if (currentChatMessages.length === 0) {
-                    // Если текущий чат пустой, ничего не делаем
-                    return;
+            async function createNewChat() {
+                try {
+                    // Проверяем, авторизован ли пользователь
+                    const { data: authData } = await window.supabaseClient.auth.getUser();
+                    
+                    if (!authData || !authData.user) {
+                        // Если пользователь не авторизован, перенаправляем на страницу авторизации
+                        window.location.href = '/auth';
+                        return;
+                    }
+                    
+                    // Создаем новую сессию в Supabase
+                    const newSession = await window.chatService.createChatSession();
+                    
+                    if (newSession) {
+                        // Обновляем текущий ID сессии
+                        currentSessionId = newSession.id;
+                        
+                        // Очищаем контейнер чата
+                        chatContainer.innerHTML = '';
+                        
+                        // Получаем обновленный список сессий
+                        const sessions = await window.chatService.getChatSessions();
+                        updateChatList(sessions);
+                        
+                        // Проверяем, нужно ли показывать приветственное сообщение
+                        checkMessagesAndToggleWelcome();
+                        
+                        // Закрываем мобильное меню истории
+                        closeMobileHistory();
+                    }
+                } catch (error) {
+                    console.error('Ошибка при создании нового чата:', error);
+                    
+                    // Если ошибка связана с авторизацией, перенаправляем на страницу авторизации
+                    if (error.message && error.message.includes('авторизован')) {
+                        window.location.href = '/auth';
+                    } else {
+                        showError('Не удалось создать новый чат');
+                    }
                 }
+            }
+            
+            // Функция для отображения ошибки
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
                 
-                // Создаем новый ID чата
-                currentChatId = 'chat-' + Date.now();
-                
-                // Очищаем контейнер чата
-                chatContainer.innerHTML = '';
-                
-                // Обновляем список чатов
-                const chatIds = [...new Set(chatHistory.map(item => item.chatId))];
-                updateChatList([...chatIds, currentChatId]);
-                
-                // Проверяем, нужно ли показывать приветственное сообщение
-                checkMessagesAndToggleWelcome();
-                
-                // Закрываем мобильное меню истории
-                closeMobileHistory();
+                // Автоматически скрываем сообщение через 5 секунд
+                setTimeout(() => {
+                    errorMessage.style.display = 'none';
+                }, 5000);
             }
             
             // Функция для переключения состояния кнопки и индикатора набора
@@ -1165,6 +1234,49 @@
                 const message = messageInput.value.trim();
                 if (!message) return;
                 
+                try {
+                    // Проверяем, авторизован ли пользователь
+                    const { data: authData } = await window.supabaseClient.auth.getUser();
+                    
+                    if (!authData || !authData.user) {
+                        // Если пользователь не авторизован, перенаправляем на страницу авторизации
+                        window.location.href = '/auth';
+                        return;
+                    }
+                    
+                    // Проверяем, есть ли активная сессия
+                    if (!currentSessionId) {
+                        try {
+                            // Создаем новую сессию
+                            const newSession = await window.chatService.createChatSession(message.substring(0, 50));
+                            if (newSession) {
+                                currentSessionId = newSession.id;
+                                
+                                // Обновляем список чатов
+                                const sessions = await window.chatService.getChatSessions();
+                                updateChatList(sessions);
+                            } else {
+                                throw new Error('Не удалось создать сессию чата');
+                            }
+                        } catch (error) {
+                            console.error('Ошибка при создании сессии:', error);
+                            
+                            // Если ошибка связана с авторизацией, перенаправляем на страницу авторизации
+                            if (error.message && error.message.includes('авторизован')) {
+                                window.location.href = '/auth';
+                                return;
+                            } else {
+                                showError('Не удалось создать сессию чата');
+                                return;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Ошибка при проверке авторизации:', error);
+                    window.location.href = '/auth';
+                    return;
+                }
+                
                 // Добавляем сообщение пользователя в чат
                 addMessage(message, true);
                 messageInput.value = '';
@@ -1194,8 +1306,8 @@
                         addMessage(data.response, false);
                         
                         // Обновляем список чатов (название может измениться)
-                        const chatIds = [...new Set(chatHistory.map(item => item.chatId))];
-                        updateChatList(chatIds);
+                        const sessions = await window.chatService.getChatSessions();
+                        updateChatList(sessions);
                         
                         // Дополнительная прокрутка вниз после добавления ответа бота
                         scrollChatToBottom();

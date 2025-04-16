@@ -94,13 +94,17 @@ def chat():
     
     data = request.json
     query = data.get('query', '')
+    session_id = data.get('session_id', '')
     
     if not query:
         return jsonify({"error": "Запрос не может быть пустым"}), 400
     
     try:
         response = chatbot.process_query(query)
-        return jsonify({"response": response})
+        return jsonify({
+            "response": response,
+            "session_id": session_id
+        })
     except Exception as e:
         return jsonify({"error": f"Ошибка при обработке запроса: {str(e)}"}), 500
 
