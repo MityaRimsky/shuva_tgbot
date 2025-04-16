@@ -249,6 +249,11 @@
             width: 100%;
         }
         
+        /* Добавляем плавную прокрутку для основного контента */
+        .main-content {
+            scroll-behavior: smooth;
+        }
+        
         /* Приветственное сообщение */
         .welcome-message {
             display: flex;
@@ -889,10 +894,20 @@
             // Функция для прокрутки чата вниз
             function scrollChatToBottom() {
                 setTimeout(() => {
+                    // Добавляем плавную прокрутку
+                    chatContainer.style.scrollBehavior = 'smooth';
                     chatContainer.scrollTop = chatContainer.scrollHeight;
+                    
                     // Также прокручиваем основной контейнер, если он имеет прокрутку
                     const mainContent = document.querySelector('.main-content');
+                    mainContent.style.scrollBehavior = 'smooth';
                     mainContent.scrollTop = mainContent.scrollHeight;
+                    
+                    // Возвращаем обычное поведение прокрутки через некоторое время
+                    setTimeout(() => {
+                        chatContainer.style.scrollBehavior = 'auto';
+                        mainContent.style.scrollBehavior = 'auto';
+                    }, 1000);
                 }, 100); // Небольшая задержка для гарантии завершения рендеринга
             }
             
