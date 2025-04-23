@@ -503,6 +503,9 @@
         #message-input {
             flex: 1;
             padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            line-height: 1.5; /* Это обеспечит правильное выравнивание текста */
             border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
             font-size: 0.9rem;
@@ -734,7 +737,7 @@
         <div class="sidebar-header">
             <div class="logo">
                 <img src="/static/images/logo.svg" alt="Sefaria Logo" class="logo-image" style="width: 30px; height: 30px; border-radius: 50%;">
-                <span data-i18n="app.name">SHUVA</span>
+                <span>SHUVA</span>
             </div>
         </div>
         <div class="sidebar-content">
@@ -762,7 +765,7 @@
         <div class="mobile-nav-content">
             <div class="mobile-logo">
                 <img src="/static/images/logo.svg" alt="Sefaria Logo" class="logo-image" style="width: 30px; height: 30px; border-radius: 50%;">
-                <span data-i18n="app.name">SHUVA</span>
+                <span>SHUVA</span>
             </div>
             <div class="mobile-actions">
                 <button class="mobile-btn" id="mobile-new-chat">
@@ -1410,7 +1413,7 @@
                 if (isLoading) {
                     sendIcon.style.display = 'none';
                     stopIcon.style.display = 'inline-block';
-                    sendButton.style.backgroundColor = '#727272'; // Цвет для кнопки стоп
+                    sendButton.style.backgroundColor = 'var(--primary-color)';
                     
                     // Создаем и добавляем индикатор загрузки в конец контейнера сообщений
                     const typingIndicatorHTML = `
