@@ -958,48 +958,92 @@
                 }
             }
             
+            // Переменные для отслеживания состояния печатания
+            let isTyping = false;
+            let typingCancelled = false;
+            let typingTimerId = null; // Идентификатор таймера для печатания
+            
             // Функция для постепенного печатания текста с реалистичными задержками
             function typeMessage(element, message, baseSpeed = 10) {
                 return new Promise((resolve) => {
                     let i = 0;
+                    let lastTimestamp = 0;
+                    let accumulatedTime = 0;
+                    let currentDelay = 0;
                     
-                    function typeNextChar() {
-                        if (i <= message.length) {
-                            // Добавляем по одному символу
-                            element.innerHTML = message.substring(0, i);
-                            i++;
-                            
-                            // Прокручиваем чат вниз при добавлении текста
-                            scrollChatToBottom();
-                            
-                            // Вычисляем случайную задержку для реалистичного эффекта печатания
-                            let delay = baseSpeed;
-                            
-                            // Добавляем случайность к скорости печатания
-                            delay += Math.random() * 10;
-                            
-                            // Добавляем паузу после знаков препинания
-                            const punctuation = ['.', ',', '!', '?', ':', ';'];
-                            if (i > 0 && punctuation.includes(message.charAt(i - 1))) {
-                                delay += 100; // Более длинная пауза после знаков препинания
-                            }
-                            
-                            // Добавляем паузу в конце предложения
-                            if (i > 0 && message.charAt(i - 1) === '.' && 
-                                (i === message.length || message.charAt(i) === ' ' || message.charAt(i) === '\n')) {
-                                delay += 200; // Еще более длинная пауза в конце предложения
-                            }
-                            
-                            // Планируем печать следующего символа
-                            setTimeout(typeNextChar, delay);
-                        } else {
-                            // Весь текст напечатан
-                            resolve();
+                    isTyping = true;
+                    typingCancelled = false;
+                    
+                    // Функция для определения задержки для текущего символа
+                    function getDelay(char, prevChar) {
+                        // Базовая задержка
+                        let delay = baseSpeed + Math.random() * 10;
+                        
+                        // Увеличиваем задержку после знаков препинания
+                        const punctuation = ['.', ',', '!', '?', ':', ';'];
+                        if (punctuation.includes(prevChar)) {
+                            delay += 100 + Math.random() * 50;
                         }
+                        
+                        // Дополнительная задержка в конце предложения
+                        if (prevChar === '.' && (char === ' ' || char === '\n')) {
+                            delay += 200 + Math.random() * 100;
+                        }
+                        
+                        // Небольшая задержка между словами
+                        if (prevChar === ' ') {
+                            delay += 20 + Math.random() * 20;
+                        }
+                        
+                        return delay;
                     }
                     
-                    // Начинаем печатать
-                    typeNextChar();
+                    // Используем requestAnimationFrame для более плавной анимации
+                    function animate(timestamp) {
+                        if (typingCancelled) {
+                            isTyping = false;
+                            resolve();
+                            return;
+                        }
+                        
+                        if (!lastTimestamp) lastTimestamp = timestamp;
+                        const elapsed = timestamp - lastTimestamp;
+                        
+                        accumulatedTime += elapsed;
+                        
+                        // Если прошло достаточно времени, добавляем следующий символ
+                        if (accumulatedTime >= currentDelay) {
+                            if (i <= message.length) {
+                                // Добавляем по одному символу
+                                element.innerHTML = message.substring(0, i);
+                                
+                                // Прокручиваем чат вниз при добавлении текста
+                                scrollChatToBottom();
+                                
+                                // Если текст полностью напечатан, останавливаем анимацию
+                                if (i === message.length) {
+                                    isTyping = false;
+                                    resolve();
+                                    return;
+                                }
+                                
+                                // Вычисляем задержку для следующего символа
+                                const char = message[i];
+                                const prevChar = i > 0 ? message[i-1] : '';
+                                currentDelay = getDelay(char, prevChar);
+                                
+                                // Сбрасываем накопленное время
+                                accumulatedTime = 0;
+                                i++;
+                            }
+                        }
+                        
+                        lastTimestamp = timestamp;
+                        typingTimerId = requestAnimationFrame(animate);
+                    }
+                    
+                    // Запускаем анимацию
+                    typingTimerId = requestAnimationFrame(animate);
                 });
             }
             
@@ -1013,6 +1057,9 @@
                         resolve(false);
                         return;
                     }
+                    
+                    // Сбрасываем флаг отмены печатания
+                    typingCancelled = false;
                     
                     // Находим контейнер с точками
                     const typingDots = typingIndicator.querySelector('.typing-dots');
@@ -1030,6 +1077,21 @@
                     
                     // Ждем завершения анимации исчезновения точек
                     setTimeout(() => {
+                        // Проверяем, не была ли отменена трансформация
+                        if (typingCancelled) {
+                            // Очищаем таймер печатания, если он активен
+                            if (typingTimerId) {
+                                if (typeof typingTimerId === 'number') {
+                                    cancelAnimationFrame(typingTimerId);
+                                } else {
+                                    clearInterval(typingTimerId);
+                                }
+                                typingTimerId = null;
+                            }
+                            resolve(false);
+                            return;
+                        }
+                        
                         // Удаляем точки
                         typingDots.remove();
                         
@@ -1048,12 +1110,17 @@
                         
                         // Печатаем сообщение с эффектом
                         typeMessage(messageContent, formattedMessage, 5).then(() => {
-                            // Удаляем ID индикатора, чтобы превратить его в обычное сообщение
-                            typingIndicator.removeAttribute('id');
-                            typingIndicator.classList.remove('typing-indicator');
-                            
-                            // Сообщаем, что трансформация завершена
-                            resolve(true);
+                            // Если печатание не было отменено, превращаем индикатор в обычное сообщение
+                            if (!typingCancelled) {
+                                // Удаляем ID индикатора, чтобы превратить его в обычное сообщение
+                                typingIndicator.removeAttribute('id');
+                                typingIndicator.classList.remove('typing-indicator');
+                                
+                                // Сообщаем, что трансформация завершена
+                                resolve(true);
+                            } else {
+                                resolve(false);
+                            }
                         });
                     }, 300); // Время анимации исчезновения точек
                 });
@@ -1347,7 +1414,7 @@
                     
                     // Создаем и добавляем индикатор загрузки в конец контейнера сообщений
                     const typingIndicatorHTML = `
-                        <div class="typing-indicator" id="typing-indicator-inline" style="display: block;">
+                        <div class="typing-indicator" id="typing-indicator-inline" style="display: block;" data-bot-response="true">
                             <div class="message-row bot">
                                 <div class="message-avatar">
                                     <img src="/static/images/logo.svg" alt="Sefaria Logo" style="width: 100%; height: 100%; border-radius: 50%;">
@@ -1383,8 +1450,11 @@
                     stopIcon.style.display = 'none';
                     sendButton.style.backgroundColor = ''; // Возвращаем исходный цвет
                     
-                    // Не удаляем индикатор здесь, так как он будет трансформирован в сообщение
-                    // Это делается в функции addMessageToUI с параметром transformIndicator=true
+                    // Удаляем индикатор загрузки и любой частично напечатанный ответ бота
+                    const inlineTypingIndicator = document.getElementById('typing-indicator-inline');
+                    if (inlineTypingIndicator) {
+                        inlineTypingIndicator.remove();
+                    }
                     
                     // Скрываем оригинальный индикатор
                     typingIndicator.style.display = 'none';
@@ -1523,6 +1593,21 @@
                     // Если запрос уже идет, останавливаем его
                     controller.abort();
                     controller = null;
+                    
+                    // Отмечаем, что печатание отменено
+                    typingCancelled = true;
+                    
+                    // Останавливаем таймер печатания, если он активен
+                    if (typingTimerId) {
+                        if (typeof typingTimerId === 'number') {
+                            cancelAnimationFrame(typingTimerId);
+                        } else {
+                            clearInterval(typingTimerId);
+                        }
+                        typingTimerId = null;
+                    }
+                    
+                    // Скрываем индикатор загрузки
                     toggleLoadingState(false);
                 } else {
                     // Иначе отправляем новое сообщение
