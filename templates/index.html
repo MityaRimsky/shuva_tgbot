@@ -357,6 +357,7 @@
             display: flex;
             align-items: center;
             gap: 4px;
+            transition: opacity 0.3s ease-out;
         }
         
         .typing-dot {
@@ -388,6 +389,26 @@
                 transform: translateY(-5px);
                 opacity: 1;
             }
+        }
+        
+        /* Анимации для плавного перехода от индикатора к тексту */
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .typing-fade-out {
+            animation: fadeOut 0.3s forwards;
+        }
+        
+        .typing-content-fade-in {
+            opacity: 0;
+            animation: fadeIn 0.3s 0.2s forwards;
         }
         
         /* Стили для цитат из Sefaria */
@@ -982,14 +1003,84 @@
                 });
             }
             
+            // Функция для трансформации индикатора загрузки в сообщение бота
+            function transformTypingIndicatorToMessage(message) {
+                return new Promise(async (resolve) => {
+                    // Находим индикатор загрузки
+                    const typingIndicator = document.getElementById('typing-indicator-inline');
+                    
+                    if (!typingIndicator) {
+                        resolve(false);
+                        return;
+                    }
+                    
+                    // Находим контейнер с точками
+                    const typingDots = typingIndicator.querySelector('.typing-dots');
+                    const messageBubble = typingIndicator.querySelector('.message-bubble');
+                    
+                    // Добавляем класс для анимации исчезновения точек
+                    typingDots.classList.add('typing-fade-out');
+                    
+                    // Создаем контейнер для текста сообщения
+                    const messageContent = document.createElement('div');
+                    messageContent.classList.add('typing-content-fade-in');
+                    
+                    // Добавляем контейнер для текста в пузырь сообщения
+                    messageBubble.appendChild(messageContent);
+                    
+                    // Ждем завершения анимации исчезновения точек
+                    setTimeout(() => {
+                        // Удаляем точки
+                        typingDots.remove();
+                        
+                        // Преобразуем Markdown в HTML
+                        let formattedMessage = message;
+                        
+                        // Заменяем ссылки на тексты Sefaria специальным форматированием
+                        formattedMessage = formattedMessage.replace(/📜\s+([^:]+)(?:\s+-\s+([^\n]+))?/g, '<div class="sefaria-quote"><span class="sefaria-ref">📜 $1</span>$2</div>');
+                        
+                        try {
+                            // Используем marked.js для преобразования Markdown в HTML
+                            formattedMessage = marked.parse(formattedMessage);
+                        } catch (e) {
+                            console.error('Ошибка при обработке Markdown:', e);
+                        }
+                        
+                        // Печатаем сообщение с эффектом
+                        typeMessage(messageContent, formattedMessage, 5).then(() => {
+                            // Удаляем ID индикатора, чтобы превратить его в обычное сообщение
+                            typingIndicator.removeAttribute('id');
+                            typingIndicator.classList.remove('typing-indicator');
+                            
+                            // Сообщаем, что трансформация завершена
+                            resolve(true);
+                        });
+                    }, 300); // Время анимации исчезновения точек
+                });
+            }
+            
             // Функция для добавления сообщения в UI (без сохранения в БД)
-            async function addMessageToUI(message, isUser, useTypingEffect = false) {
+            async function addMessageToUI(message, isUser, useTypingEffect = false, transformIndicator = false) {
                 // Удаляем приветственное сообщение при добавлении первого сообщения
                 const welcomeMessage = document.getElementById('welcome-message');
                 if (welcomeMessage) {
                     welcomeMessage.remove();
                 }
                 
+                // Если это сообщение бота и нужно трансформировать индикатор
+                if (!isUser && transformIndicator) {
+                    // Пробуем трансформировать существующий индикатор загрузки
+                    const transformed = await transformTypingIndicatorToMessage(message);
+                    
+                    // Если трансформация прошла успешно, не создаем новый элемент
+                    if (transformed) {
+                        // Прокрутка вниз после добавления сообщения
+                        scrollChatToBottom();
+                        return;
+                    }
+                }
+                
+                // Если трансформация не удалась или не требуется, создаем новый элемент
                 const messageRow = document.createElement('div');
                 messageRow.classList.add('message-row');
                 messageRow.classList.add(isUser ? 'user' : 'bot');
@@ -1252,7 +1343,7 @@
                 if (isLoading) {
                     sendIcon.style.display = 'none';
                     stopIcon.style.display = 'inline-block';
-                    sendButton.style.backgroundColor = '727272'; // Цвет для кнопки стоп
+                    sendButton.style.backgroundColor = '#727272'; // Цвет для кнопки стоп
                     
                     // Создаем и добавляем индикатор загрузки в конец контейнера сообщений
                     const typingIndicatorHTML = `
@@ -1292,11 +1383,8 @@
                     stopIcon.style.display = 'none';
                     sendButton.style.backgroundColor = ''; // Возвращаем исходный цвет
                     
-                    // Удаляем встроенный индикатор загрузки
-                    const inlineTypingIndicator = document.getElementById('typing-indicator-inline');
-                    if (inlineTypingIndicator) {
-                        inlineTypingIndicator.remove();
-                    }
+                    // Не удаляем индикатор здесь, так как он будет трансформирован в сообщение
+                    // Это делается в функции addMessageToUI с параметром transformIndicator=true
                     
                     // Скрываем оригинальный индикатор
                     typingIndicator.style.display = 'none';
@@ -1376,8 +1464,8 @@
                     const data = await response.json();
                     
                     if (response.ok) {
-                        // Добавляем ответ бота в чат с эффектом печатания
-                        await addMessageToUI(data.response, false, true);
+                        // Добавляем ответ бота в чат с эффектом печатания и трансформацией индикатора
+                        await addMessageToUI(data.response, false, true, true);
                         
                         // Сохраняем сообщение в БД
                         if (currentSessionId) {
