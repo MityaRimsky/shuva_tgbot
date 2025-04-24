@@ -1013,7 +1013,7 @@
                                 <div class="welcome-icon">
                                     <img src="/static/images/logo.svg" alt="Sefaria Logo" style="width: 100%; height: 100%; border-radius: 50%;">
                                 </div>
-                                <h2>Чем могу вам помочь?</h2>
+                                <h2 data-i18n="welcome.message">${window.i18nModule.t('welcome.message')}</h2>
                             </div>
                         `;
                         chatContainer.innerHTML = welcomeHTML + chatContainer.innerHTML;
@@ -1389,8 +1389,8 @@
                     desktopItem.dataset.sessionId = session.id;
                     if (session.id === currentSessionId) desktopItem.classList.add('active');
                     
-                    // Используем title или создаем название по умолчанию
-                    const chatName = session.title || `Чат ${index + 1}`;
+                    // Используем title или создаем название по умолчанию с переводом
+                    const chatName = session.title || window.i18nModule.t('chat.default', { number: index + 1 });
                     
                     desktopItem.innerHTML = `
                         <i class="fas fa-comment"></i>

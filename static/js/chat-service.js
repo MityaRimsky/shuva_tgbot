@@ -57,7 +57,7 @@ const chatService = (function() {
     }
     
     // Создание новой сессии чата
-    async function createChatSession(title = 'Новый чат') {
+    async function createChatSession(title = null) {
         try {
             // Получаем текущего пользователя
             const { data: authData, error: authError } = await window.supabaseClient.auth.getUser();
@@ -66,6 +66,11 @@ const chatService = (function() {
             if (!authData || !authData.user) throw new Error('Пользователь не авторизован');
             
             const userId = authData.user.id;
+            
+            // Если заголовок не передан, используем перевод "Новый чат"
+            if (title === null) {
+                title = window.i18nModule.t('chat.new');
+            }
             
             // Создаем сессию с указанием user_id
             const { data, error } = await window.supabaseClient
