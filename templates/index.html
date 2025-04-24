@@ -202,7 +202,14 @@
             flex-direction: column;
             padding: 20px;
             color: var(--text-color);
-            
+            overflow-y: hidden;
+        }
+        
+        /* Стили для списка чатов в мобильном меню */
+        #mobile-history-list {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
         }
         
         .mobile-history.active {
@@ -728,6 +735,59 @@
         .new-chat-btn:active {
         background-color: rgba(0, 127, 231, 0.1) !important;
         transition: background-color 0.1s;
+        }
+        
+        /* Стили для скелетон-анимации при загрузке переводов */
+        @keyframes skeleton-loading {
+            0% {
+                background-color: rgba(200, 200, 200, 0.1);
+            }
+            50% {
+                background-color: rgba(200, 200, 200, 0.3);
+            }
+            100% {
+                background-color: rgba(200, 200, 200, 0.1);
+            }
+        }
+        
+        body.i18n-loading [data-i18n]:not(.i18n-translated) {
+            color: transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        body.i18n-loading [data-i18n]:not(.i18n-translated)::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(200, 200, 200, 0.2);
+            border-radius: 4px;
+            animation: skeleton-loading 1.5s infinite;
+        }
+        
+        /* Для элементов с placeholder */
+        body.i18n-loading [data-i18n-placeholder]:not(.i18n-translated)::placeholder {
+            color: transparent;
+        }
+        
+        body.i18n-loading [data-i18n-placeholder]:not(.i18n-translated) {
+            position: relative;
+        }
+        
+        body.i18n-loading [data-i18n-placeholder]:not(.i18n-translated)::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(200, 200, 200, 0.2);
+            border-radius: 4px;
+            animation: skeleton-loading 1.5s infinite;
+            pointer-events: none;
         }
     </style>
 </head>

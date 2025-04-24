@@ -1,5 +1,8 @@
 // Инициализация i18next
 async function initI18n() {
+    // Добавляем класс для скелетон-анимации
+    document.body.classList.add('i18n-loading');
+    
     // Загружаем библиотеки
     await loadScript('https://cdn.jsdelivr.net/npm/i18next@21.6.10/i18next.min.js');
     await loadScript('https://cdn.jsdelivr.net/npm/i18next-http-backend@1.3.2/i18nextHttpBackend.min.js');
@@ -26,6 +29,10 @@ async function initI18n() {
     
     // Обновляем тексты на странице после инициализации
     updatePageTexts();
+    
+    // Удаляем класс скелетон-анимации и добавляем класс загруженных переводов
+    document.body.classList.remove('i18n-loading');
+    document.body.classList.add('i18n-loaded');
     
     // Возвращаем инициализированный i18next
     return i18next;
@@ -85,12 +92,18 @@ function updatePageTexts() {
                 console.log(`Перевод для ключа ${key}:`, translation);
                 element.textContent = translation;
             }
+            
+            // Добавляем класс, указывающий, что элемент переведен
+            element.classList.add('i18n-translated');
         });
         
         // Обновляем все элементы с атрибутом data-i18n-placeholder
         document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
             const key = element.getAttribute('data-i18n-placeholder');
             element.placeholder = t(key);
+            
+            // Добавляем класс, указывающий, что элемент переведен
+            element.classList.add('i18n-translated');
         });
         
         console.log('Обновление текстов завершено');
