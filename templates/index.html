@@ -1365,7 +1365,23 @@
                         return;
                     }
                     
-                    // Создаем новую сессию в Supabase
+                    // Всегда проверяем наличие пустых чатов, независимо от состояния текущего чата
+                    const sessions = await window.chatService.getChatSessions();
+                    
+                    // Исключаем текущую сессию из поиска
+                    const otherSessions = sessions.filter(session => session.id !== currentSessionId);
+                    
+                    // Ищем пустой чат среди других сессий
+                    for (const session of otherSessions) {
+                        const messages = await window.chatService.getChatMessages(session.id);
+                        if (messages.length === 0) {
+                            // Если найден пустой чат, переходим к нему
+                            loadChat(session.id);
+                            return;
+                        }
+                    }
+                    
+                    // Если нет других пустых чатов, создаем новый
                     const newSession = await window.chatService.createChatSession();
                     
                     if (newSession) {
@@ -1376,8 +1392,8 @@
                         chatContainer.innerHTML = '';
                         
                         // Получаем обновленный список сессий
-                        const sessions = await window.chatService.getChatSessions();
-                        updateChatList(sessions);
+                        const updatedSessions = await window.chatService.getChatSessions();
+                        updateChatList(updatedSessions);
                         
                         // Проверяем, нужно ли показывать приветственное сообщение
                         checkMessagesAndToggleWelcome();
