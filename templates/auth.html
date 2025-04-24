@@ -258,11 +258,17 @@
         
         /* Стили для блока с политикой конфиденциальности */
         .privacy-notice {
-            margin-top: 48px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
             text-align: center;
             font-size: 0.8rem;
             color: var(--text-light);
             width: 100%;
+            padding: 10px;
+            background-color: var(--bg-color);
+            border-top: 1px solid var(--border-color);
         }
         
         .privacy-link {
@@ -400,9 +406,10 @@
             </div>
         </div>
         
-        <div class="privacy-notice">
-            <p><span data-i18n="auth.privacyNotice">Используя это приложение, вы соглашаетесь с нашей</span> <a href="/privacy" class="privacy-link" data-i18n="auth.privacyPolicy">Политикой конфиденциальности</a>.</p>
-        </div>
+    </div>
+    
+    <div class="privacy-notice">
+        <p><span data-i18n="auth.privacyNotice">Используя это приложение, вы соглашаетесь с нашей</span> <a href="/privacy" class="privacy-link" data-i18n="auth.privacyPolicy">Политикой конфиденциальности</a>.</p>
     </div>
     
     <!-- Модальное окно для сброса пароля -->
