@@ -84,6 +84,11 @@ def reset_password():
     # Страница для сброса пароля после перехода по ссылке из email
     return render_template('auth.html')
 
+@app.route('/privacy')
+def privacy():
+    # Страница политики конфиденциальности
+    return render_template('privacy.html')
+
 @app.route('/api/chat', methods=['POST'])
 @auth_required
 def chat():

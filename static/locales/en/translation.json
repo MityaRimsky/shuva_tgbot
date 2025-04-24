@@ -15,6 +15,8 @@
     "resetSuccess": "Password reset instructions have been sent to your email",
     "loginWithGoogle": "Sign in with Google",
     "or": "or",
+    "privacyNotice": "By using this application, you agree to our",
+    "privacyPolicy": "Privacy Policy",
     "errorEmptyFields": "Please fill in all fields",
     "errorInvalidCredentials": "Invalid email or password",
     "errorEmailNotConfirmed": "Email not confirmed. Please check your inbox",
@@ -80,5 +82,10 @@
     "russian": "Russian",
     "english": "English",
     "logout": "Log out"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "back": "Back",
+    "placeholder": "Privacy policy text will be added later."
   }
 }

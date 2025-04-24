@@ -15,6 +15,8 @@
     "resetSuccess": "Инструкции по сбросу пароля отправлены на ваш email",
     "loginWithGoogle": "Войти с Google",
     "or": "или",
+    "privacyNotice": "Используя это приложение, вы соглашаетесь с нашей",
+    "privacyPolicy": "Политикой конфиденциальности",
     "errorEmptyFields": "Пожалуйста, заполните все поля",
     "errorInvalidCredentials": "Неверный email или пароль",
     "errorEmailNotConfirmed": "Email не подтвержден. Проверьте вашу почту",
@@ -80,5 +82,10 @@
     "russian": "Русский",
     "english": "English",
     "logout": "Выйти из аккаунта"
+  },
+  "privacy": {
+    "title": "Политика конфиденциальности",
+    "back": "Назад",
+    "placeholder": "Текст политики конфиденциальности будет добавлен позже."
   }
 }
