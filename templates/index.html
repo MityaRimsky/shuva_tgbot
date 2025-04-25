@@ -805,6 +805,17 @@
             justify-content: center;
         }
         
+        /* Исправление для SVG-изображений в темной теме */
+        .logo-image, 
+        .language-option img, 
+        .welcome-icon img, 
+        .message-avatar img,
+        .user-avatar img {
+            color-scheme: light;
+            forced-color-adjust: none;
+            filter: none !important;
+        }
+        
         /* Стили для скелетон-анимации при загрузке переводов */
         @keyframes skeleton-loading {
             0% {
