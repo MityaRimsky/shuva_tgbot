@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHUVA</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@200;300;400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/auth.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -680,13 +680,13 @@
         /* Стили для переключателя языка */
         .language-switcher {
             display: flex;
-            justify-content: center;
-            gap: 1rem;
+            justify-content: flex-end;
+            gap: 0.5rem;
         }
         
         .language-option {
-            width: 40px;
-            height: 40px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             overflow: hidden;
             cursor: pointer;
@@ -735,6 +735,58 @@
         .new-chat-btn:active {
         background-color: rgba(0, 127, 231, 0.1) !important;
         transition: background-color 0.1s;
+        }
+        
+        /* Стили для элементов профиля */
+        .profile-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
+        }
+        
+        .profile-item:last-child {
+            border-bottom: none;
+        }
+        
+        
+        .profile-item-left {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            line-height: 1.2;
+            font-weight: 200;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .profile-item-left i {
+            width: 24px;
+            height: 24px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+        }
+        
+        .profile-item-right {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+        }
+        
+        .profile-item-right i {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         /* Стили для скелетон-анимации при загрузке переводов */
@@ -909,7 +961,7 @@
     <!-- Модальное окно профиля -->
     <div id="profile-modal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header" style="border-bottom: none;">
                 <h2 data-i18n="profile.title">Профиль</h2>
                 <button class="close-modal">&times;</button>
             </div>
@@ -921,20 +973,44 @@
                     <p id="profile-email">email@example.com</p>
                 </div>
                 
-                <!-- Переключатель языка -->
-                <div class="profile-section">
-                    <h3 data-i18n="profile.language">Язык</h3>
-                    <div class="language-switcher">
-                        <div class="language-option" data-lang="ru">
-                            <img src="/static/images/flag_ru.svg" alt="Русский">
-                        </div>
-                        <div class="language-option" data-lang="en">
-                            <img src="/static/images/flag_us.svg" alt="English">
+                <div style="width: 100%; border-bottom: 1px solid var(--border-color); margin: 15px 0;"></div>
+                
+                <!-- Блок языка -->
+                <div class="profile-item">
+                    <div class="profile-item-left">
+                        <i class="fas fa-globe"></i>
+                        <span data-i18n="profile.language">Язык</span>
+                    </div>
+                    <div class="profile-item-right">
+                        <div class="language-switcher">
+                            <div class="language-option" data-lang="ru">
+                                <img src="/static/images/flag_ru.svg" alt="Русский">
+                            </div>
+                            <div class="language-option" data-lang="en">
+                                <img src="/static/images/flag_us.svg" alt="English">
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <button id="logout-button" class="logout-button" data-i18n="profile.logout">Выйти из аккаунта</button>
+                <!-- Блок политики конфиденциальности -->
+                <div class="profile-item" id="privacy-policy-link">
+                    <div class="profile-item-left">
+                        <i class="fas fa-shield-halved"></i>
+                        <span data-i18n="privacy.title">Политика конфиденциальности</span>
+                    </div>
+                    <div class="profile-item-right">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                
+                <!-- Блок выхода из аккаунта -->
+                <div class="profile-item" id="logout-link">
+                    <div class="profile-item-left">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span data-i18n="profile.logout">Выйти из аккаунта</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1722,6 +1798,8 @@
             const sidebarUser = document.getElementById('sidebar-user');
             const mobileSidebarUser = document.getElementById('mobile-sidebar-user');
             const closeModalButtons = document.querySelectorAll('.close-modal');
+            const privacyPolicyLink = document.getElementById('privacy-policy-link');
+            const logoutLink = document.getElementById('logout-link');
             
             function openProfileModal() {
                 profileModal.style.display = 'block';
@@ -1748,6 +1826,22 @@
             window.addEventListener('click', function(event) {
                 if (event.target === profileModal) {
                     closeProfileModal();
+                }
+            });
+            
+            // Обработчик для перехода на страницу политики конфиденциальности
+            privacyPolicyLink.addEventListener('click', function() {
+                window.location.href = '/privacy';
+            });
+            
+            // Обработчик для выхода из аккаунта
+            logoutLink.addEventListener('click', async function() {
+                try {
+                    await window.supabaseClient.auth.signOut();
+                    window.location.href = '/auth';
+                } catch (error) {
+                    console.error('Ошибка при выходе из аккаунта:', error);
+                    showError('Не удалось выйти из аккаунта');
                 }
             });
             
