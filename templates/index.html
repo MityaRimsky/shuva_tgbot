@@ -488,15 +488,16 @@
         
         /* Модуль ввода */
         .input-container {
+            max-width: 800px;
+            width: 100%;
             padding: 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
             background-color: var(--bg-color);
-            position: sticky;
+            position: fixed;
             bottom: 0;
             z-index: 9999;
-            /* Добавляем отступ снизу для учета нижней панели браузера */
             padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
         }
         
