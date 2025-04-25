@@ -495,19 +495,18 @@
             background-color: var(--bg-color);
             position: sticky;
             bottom: 0;
-            padding-bottom: calc(16px + env(safe-area-inset-bottom));
             z-index: 9999;
+            /* Добавляем отступ снизу для учета нижней панели браузера */
+            padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
         }
         
         .input-wrapper {
-            position: fixed;
             max-width: 800px;
             width: 100%;
             position: relative;
             display: flex;
             align-items: center;
             gap: 10px;
-            z-index: 9999;
         }
         
         #message-input {
@@ -594,6 +593,7 @@
             
             .input-container {
                 padding: 15px;
+                padding-bottom: calc(15px + env(safe-area-inset-bottom, 20px)); /* Увеличиваем отступ для мобильных устройств */
             }
             
             .message-bubble {
