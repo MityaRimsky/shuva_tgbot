@@ -3,8 +3,20 @@ import os
 import sys
 import traceback
 import json
+import logging
 from dotenv import load_dotenv
 from functools import wraps
+from supabase import create_client, Client
+
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger('supabase-auth')
 
 print("Запуск приложения...")
 
@@ -24,6 +36,20 @@ except Exception as e:
 # Загрузка переменных окружения
 print("Загрузка переменных окружения...")
 load_dotenv()
+
+# Инициализация Supabase
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_key = os.getenv("SUPABASE_KEY")
+supabase = None
+
+if supabase_url and supabase_key:
+    try:
+        print("Инициализация Supabase...")
+        supabase = create_client(supabase_url, supabase_key)
+        print("Supabase успешно инициализирован")
+    except Exception as e:
+        logger.error(f"Ошибка при инициализации Supabase: {str(e)}")
+        print(traceback.format_exc())
 
 print("Создание Flask-приложения...")
 app = Flask(__name__)
@@ -50,6 +76,34 @@ def auth_required(f):
         # Проверка наличия токена в сессии
         if 'auth_token' not in session:
             return redirect(url_for('auth'))
+        
+        # Проверка валидности токена через Supabase
+        if supabase:
+            try:
+                # Получаем токен из сессии
+                token = session['auth_token']
+                
+                # Проверяем токен через Supabase
+                response = supabase.auth.get_user(token)
+                
+                # Если токен валидный, обновляем данные пользователя в сессии
+                if response and hasattr(response, 'user') and response.user:
+                    session['user_email'] = response.user.email
+                    return f(*args, **kwargs)
+                else:
+                    # Если токен невалидный, удаляем его из сессии и перенаправляем на страницу авторизации
+                    logger.warning(f"Невалидный токен: {token[:10]}...")
+                    session.pop('auth_token', None)
+                    session.pop('user_email', None)
+                    return redirect(url_for('auth'))
+            except Exception as e:
+                logger.error(f"Ошибка при проверке токена: {str(e)}")
+                # В случае ошибки, удаляем токен из сессии и перенаправляем на страницу авторизации
+                session.pop('auth_token', None)
+                session.pop('user_email', None)
+                return redirect(url_for('auth'))
+        
+        # Если Supabase не инициализирован, просто проверяем наличие токена в сессии
         return f(*args, **kwargs)
     return decorated
 
@@ -131,10 +185,36 @@ def get_text(ref):
 @app.route('/api/auth/login', methods=['POST'])
 def auth_login():
     data = request.json
+    token = data.get('token')
     
-    # В реальном приложении здесь была бы проверка через Supabase
-    # Но для демонстрации мы просто сохраняем токен в сессии
-    session['auth_token'] = data.get('token')
+    if not token:
+        logger.warning("Попытка входа без токена")
+        return jsonify({"success": False, "error": "Токен не предоставлен"}), 400
+    
+    # Проверка токена через Supabase
+    if supabase:
+        try:
+            logger.info(f"Проверка токена через Supabase: {token[:10]}...")
+            
+            # Проверяем токен через Supabase
+            response = supabase.auth.get_user(token)
+            
+            # Если токен валидный, сохраняем его в сессии
+            if response and hasattr(response, 'user') and response.user:
+                session['auth_token'] = token
+                session['user_email'] = response.user.email
+                logger.info(f"Успешный вход пользователя: {response.user.email}")
+                return jsonify({"success": True})
+            else:
+                logger.warning("Невалидный токен при попытке входа")
+                return jsonify({"success": False, "error": "Невалидный токен"}), 401
+        except Exception as e:
+            logger.error(f"Ошибка при проверке токена: {str(e)}")
+            return jsonify({"success": False, "error": "Ошибка при проверке токена"}), 500
+    
+    # Если Supabase не инициализирован, просто сохраняем токен в сессии
+    logger.warning("Supabase не инициализирован, сохраняем токен без проверки")
+    session['auth_token'] = token
     session['user_email'] = data.get('email')
     
     return jsonify({"success": True})
@@ -152,8 +232,41 @@ def auth_user():
     if 'auth_token' not in session:
         return jsonify({"authenticated": False}), 401
     
-    # В реальном приложении здесь была бы проверка токена через Supabase
-    # и получение данных пользователя
+    # Проверка токена через Supabase
+    if supabase:
+        try:
+            # Получаем токен из сессии
+            token = session['auth_token']
+            
+            # Проверяем токен через Supabase
+            response = supabase.auth.get_user(token)
+            
+            # Если токен валидный, возвращаем данные пользователя
+            if response and hasattr(response, 'user') and response.user:
+                user = response.user
+                return jsonify({
+                    "authenticated": True,
+                    "user": {
+                        "id": user.id,
+                        "email": user.email,
+                        "email_confirmed": user.email_confirmed_at is not None,
+                        "last_sign_in": user.last_sign_in_at
+                    }
+                })
+            else:
+                # Если токен невалидный, удаляем его из сессии
+                logger.warning(f"Невалидный токен при запросе данных пользователя: {token[:10]}...")
+                session.pop('auth_token', None)
+                session.pop('user_email', None)
+                return jsonify({"authenticated": False, "error": "Невалидный токен"}), 401
+        except Exception as e:
+            logger.error(f"Ошибка при проверке токена: {str(e)}")
+            # В случае ошибки, удаляем токен из сессии
+            session.pop('auth_token', None)
+            session.pop('user_email', None)
+            return jsonify({"authenticated": False, "error": "Ошибка при проверке токена"}), 500
+    
+    # Если Supabase не инициализирован, просто возвращаем данные из сессии
     return jsonify({
         "authenticated": True,
         "user": {
