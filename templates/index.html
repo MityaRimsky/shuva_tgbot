@@ -1425,7 +1425,16 @@
                         return;
                     }
                     
-                    // Всегда проверяем наличие пустых чатов, независимо от состояния текущего чата
+                    // Проверяем, является ли текущий чат пустым
+                    if (currentSessionId) {
+                        const currentMessages = await window.chatService.getChatMessages(currentSessionId);
+                        if (currentMessages.length === 0) {
+                            // Если текущий чат пустой, ничего не делаем - пользователь уже в новом чате
+                            return;
+                        }
+                    }
+                    
+                    // Проверяем наличие пустых чатов среди других сессий
                     const sessions = await window.chatService.getChatSessions();
                     
                     // Исключаем текущую сессию из поиска
