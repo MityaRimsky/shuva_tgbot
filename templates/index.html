@@ -122,9 +122,14 @@
             transition: background-color 0.2s;
             color: var(--text-light);
             font-size: 0.9rem;
+        }
+
+        .chat-item span {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            flex: 1;
+            padding-right: 10px; /* Добавляем отступ справа */
         }
         
         .chat-item:hover {
@@ -757,7 +762,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
+            padding: 16px 0;
             cursor: pointer;
             transition: background-color 0.2s;
             width: 100%;
@@ -1000,7 +1005,7 @@
                     <p id="profile-email">email@example.com</p>
                 </div>
                 
-                <div style="width: 100%; border-bottom: 1px solid var(--border-color); margin: 15px 0;"></div>
+                <div style="width: 100%; border-bottom: 1px solid var(--border-color); margin: 16px 0;"></div>
                 
                 <!-- Блок языка -->
                 <div class="profile-item">
