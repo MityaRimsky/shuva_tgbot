@@ -222,41 +222,49 @@ def auth_login():
 @app.route('/api/auth/logout', methods=['POST'])
 def auth_logout():
     try:
+        # Получаем токен из сессии
         token = session.get('auth_token')
-        refresh_token = session.get('refresh_token')
         
-        if supabase:
+        if supabase and token:
             try:
-                if refresh_token:
-                    supabase.auth.sign_out(refresh_token)
-                    logger.info(f"Успешный выход через refresh_token")
-                else:
-                    # Fallback: попытка выхода через access token
-                    supabase.auth.sign_out(token)
-                    logger.info(f"Успешный выход через access token")
-
-                # 2. Обновляем сессии в БД
-                user_id = session.get('user_id')
-                if user_id:
-                    supabase.table('chat_sessions') \
-                        .update({'is_active': False}) \
-                        .eq('user_id', user_id) \
-                        .eq('is_active', True) \
-                        .execute()
-
+                # 1. Получаем данные пользователя из токена
+                user_response = supabase.auth.get_user(token)
+                
+                if user_response and hasattr(user_response, 'user') and user_response.user:
+                    user_id = user_response.user.id
+                    
+                    # 2. Обновляем статус активных сессий пользователя в таблице chat_sessions
+                    try:
+                        supabase.table('chat_sessions') \
+                            .update({'is_active': False}) \
+                            .eq('user_id', user_id) \
+                            .eq('is_active', True) \
+                            .execute()
+                        
+                        logger.info(f"Успешно обновлены сессии пользователя {user_id}")
+                    except Exception as e:
+                        logger.warning(f"Ошибка при обновлении сессий пользователя: {str(e)}")
+                
+                # 3. Выход из Supabase согласно актуальной документации
+                try:
+                    supabase.auth.sign_out()
+                    logger.info("Успешный выход из Supabase (метод sign_out без параметров)")
+                except Exception as e1:
+                    logger.warning(f"Ошибка при выходе из Supabase: {str(e1)}")
+                    
             except Exception as e:
-                logger.warning(f"Ошибка Supabase при выходе (возможно сессия уже завершена): {str(e)}")
-
-        # 3. Очистка сессии Flask
-        session.clear()  # Полная очистка вместо ручного pop
-
+                logger.warning(f"Ошибка при получении данных пользователя: {str(e)}")
+        
+        # 4. Очистка сессии Flask в любом случае
+        session.clear()
+        
         return jsonify({"success": True})
-
+        
     except Exception as e:
         logger.error(f"Критическая ошибка выхода: {str(e)}", exc_info=True)
-        return jsonify({
-            "success": False,
-            "error": "Ошибка сервера при выходе"}), 500
+        # Очищаем сессию даже при ошибке
+        session.clear()
+        return jsonify({"success": False, "error": "Ошибка сервера при выходе"}), 500
 
 @app.route('/api/auth/user')
 def auth_user():
