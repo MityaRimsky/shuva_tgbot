@@ -221,9 +221,21 @@ def auth_login():
 
 @app.route('/api/auth/logout', methods=['POST'])
 def auth_logout():
-    # Удаляем данные аутентификации из сессии
-    session.pop('auth_token', None)
-    session.pop('user_email', None)
+    try:
+        # Получаем токен из сессии
+        token = session.get('auth_token')
+        
+        # Если токен есть и Supabase инициализирован, выполняем выход
+        if token and supabase:
+            # Выход из Supabase
+            supabase.auth.sign_out(token)
+            logger.info("Успешный выход из Supabase")
+    except Exception as e:
+        logger.warning(f"Ошибка при выходе из Supabase: {str(e)}")
+    finally:
+        # В любом случае удаляем данные из сессии Flask
+        session.pop('auth_token', None)
+        session.pop('user_email', None)
     
     return jsonify({"success": True})
 
