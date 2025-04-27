@@ -93,14 +93,18 @@ def auth_required(f):
                 else:
                     # Если токен невалидный, удаляем его из сессии и перенаправляем на страницу авторизации
                     logger.warning(f"Невалидный токен: {token[:10]}...")
-                    session.pop('auth_token', None)
-                    session.pop('user_email', None)
+                    session.clear()  # Полная очистка сессии
                     return redirect(url_for('auth'))
             except Exception as e:
-                logger.error(f"Ошибка при проверке токена: {str(e)}")
-                # В случае ошибки, удаляем токен из сессии и перенаправляем на страницу авторизации
-                session.pop('auth_token', None)
-                session.pop('user_email', None)
+                error_message = str(e)
+                # Специфическая обработка ошибки сессии
+                if "Session from session_id claim in JWT does not exist" in error_message:
+                    logger.info("Сессия не существует в Supabase, перенаправление на страницу авторизации")
+                else:
+                    logger.error(f"Ошибка при проверке токена: {error_message}")
+                
+                # В случае ошибки, удаляем данные из сессии и перенаправляем на страницу авторизации
+                session.clear()  # Полная очистка сессии
                 return redirect(url_for('auth'))
         
         # Если Supabase не инициализирован, просто проверяем наличие токена в сессии
@@ -295,14 +299,18 @@ def auth_user():
             else:
                 # Если токен невалидный, удаляем его из сессии
                 logger.warning(f"Невалидный токен при запросе данных пользователя: {token[:10]}...")
-                session.pop('auth_token', None)
-                session.pop('user_email', None)
+                session.clear()  # Полная очистка сессии
                 return jsonify({"authenticated": False, "error": "Невалидный токен"}), 401
         except Exception as e:
-            logger.error(f"Ошибка при проверке токена: {str(e)}")
-            # В случае ошибки, удаляем токен из сессии
-            session.pop('auth_token', None)
-            session.pop('user_email', None)
+            error_message = str(e)
+            # Специфическая обработка ошибки сессии
+            if "Session from session_id claim in JWT does not exist" in error_message:
+                logger.info("Сессия не существует в Supabase, перенаправление на страницу авторизации")
+            else:
+                logger.error(f"Ошибка при проверке токена: {error_message}")
+            
+            # В случае ошибки, удаляем данные из сессии
+            session.clear()  # Полная очистка сессии
             return jsonify({"authenticated": False, "error": "Ошибка при проверке токена"}), 500
     
     # Если Supabase не инициализирован, просто возвращаем данные из сессии
