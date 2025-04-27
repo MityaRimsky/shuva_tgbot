@@ -225,11 +225,52 @@ def auth_logout():
         # Получаем токен из сессии
         token = session.get('auth_token')
         
-        # Если токен есть и Supabase инициализирован, выполняем выход
+        # Если токен есть и Supabase инициализирован
         if token and supabase:
-            # Выход из Supabase
-            supabase.auth.sign_out(token)
-            logger.info("Успешный выход из Supabase")
+            try:
+                # Получаем данные пользователя из токена
+                user_response = supabase.auth.get_user(token)
+                
+                if user_response and hasattr(user_response, 'user') and user_response.user:
+                    user_id = user_response.user.id
+                    
+                    # Обновляем статус активных сессий пользователя в таблице chat_sessions
+                    try:
+                        # Устанавливаем is_active = false для всех активных сессий пользователя
+                        supabase.table('chat_sessions') \
+                            .update({'is_active': False, 'updated_at': 'now()'}) \
+                            .eq('user_id', user_id) \
+                            .eq('is_active', True) \
+                            .execute()
+                        
+                        logger.info(f"Успешно обновлены сессии пользователя {user_id}")
+                    except Exception as e:
+                        logger.warning(f"Ошибка при обновлении сессий пользователя: {str(e)}")
+                
+                # Пробуем разные варианты метода выхода из Supabase
+                try:
+                    # Вариант 1: без параметров
+                    supabase.auth.signout()
+                    logger.info("Успешный выход из Supabase (метод signout)")
+                except Exception as e1:
+                    try:
+                        # Вариант 2: с токеном
+                        supabase.auth.signout(jwt=token)
+                        logger.info("Успешный выход из Supabase (метод signout с jwt)")
+                    except Exception as e2:
+                        try:
+                            # Вариант 3: sign_out без параметров
+                            supabase.auth.sign_out()
+                            logger.info("Успешный выход из Supabase (метод sign_out)")
+                        except Exception as e3:
+                            try:
+                                # Вариант 4: sign_out с токеном
+                                supabase.auth.sign_out(token)
+                                logger.info("Успешный выход из Supabase (метод sign_out с токеном)")
+                            except Exception as e4:
+                                logger.warning(f"Ошибка при выходе из Supabase: {str(e1)}, {str(e2)}, {str(e3)}, {str(e4)}")
+            except Exception as e:
+                logger.warning(f"Ошибка при получении данных пользователя: {str(e)}")
     except Exception as e:
         logger.warning(f"Ошибка при выходе из Supabase: {str(e)}")
     finally:
