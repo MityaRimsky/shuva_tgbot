@@ -225,37 +225,31 @@ def auth_logout():
         # Получаем токен из сессии
         token = session.get('auth_token')
         
-        # Если токен есть и Supabase инициализирован
         if token and supabase:
             try:
-                # 1. Обновляем статус сессий в базе данных
-                user_response = supabase.auth.get_user(token)
-                if user_response and hasattr(user_response, 'user') and user_response.user:
-                    user_id = user_response.user.id
-                    
-                    # Обновляем chat_sessions
-                    supabase.table('chat_sessions') \
-                        .update({'is_active': False, 'updated_at': 'now()'}) \
-                        .eq('user_id', user_id) \
-                        .eq('is_active', True) \
-                        .execute()
-                    
-                    logger.info(f"Сессии пользователя {user_id} деактивированы")
-                
-                # 2. Стандартный выход (для supabase-2.x.x)
-                supabase.auth.sign_out()
-                logger.info("Успешный выход из Supabase")
+                # Пытаемся выйти из Supabase (здесь важно точно использовать правильный метод)
+                supabase.auth.signout()  # Этот метод должен полностью завершить сессию
+                logger.info(f"Успешный выход пользователя с токеном: {token[:10]}...")
+
+                # Обновляем сессии пользователя в chat_sessions
+                supabase.table('chat_sessions') \
+                    .update({'is_active': False, 'updated_at': 'now()'}) \
+                    .eq('user_id', session.get('user_id')) \
+                    .eq('is_active', True) \
+                    .execute()
                 
             except Exception as e:
-                logger.warning(f"Ошибка при выходе (возможно токен уже недействителен): {str(e)}")
+                logger.warning(f"Ошибка при выходе из Supabase: {str(e)}")
+                
+        # Удаляем данные из сессии Flask
+        session.pop('auth_token', None)
+        session.pop('user_email', None)
+        session.pop('user_id', None)  # Если user_id хранится в сессии
+
+        return jsonify({"success": True})
     except Exception as e:
-        logger.error(f"Ошибка при обработке выхода: {str(e)}")
-    finally:
-        # Всегда очищаем сессию Flask
-        session.clear()
-        logger.info("Сессия Flask очищена")
-    
-    return jsonify({"success": True})
+        logger.warning(f"Ошибка при выходе: {str(e)}")
+        return jsonify({"success": False, "error": "Ошибка при выходе из системы"}), 500
 
 @app.route('/api/auth/user')
 def auth_user():
