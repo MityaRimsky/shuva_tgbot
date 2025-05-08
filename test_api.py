@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 """
-Скрипт для тестирования API Sefaria и OpenRouter.
+Скрипт для тестирования API Sefaria, OpenRouter и Hebcal.
 Проверяет доступность API и корректность работы модулей.
 """
-
+import time
 import os
 import sys
+import datetime
 from dotenv import load_dotenv
 from openrouter_api import OpenRouterAPI
 from sefaria_api import SefariaAPI
+from hebcal_api import HebcalAPI
 
 def test_sefaria_api():
     """Тестирование API Sefaria"""
@@ -202,6 +204,116 @@ def test_openrouter_api():
         print("Тест OpenRouter API: НЕУДАЧА")
         return False
 
+def test_hebcal_api():
+    """Тестирование API Hebcal"""
+    print("\n=== Тестирование Hebcal API ===")
+    
+    try:
+        hebcal = HebcalAPI()
+        all_tests_passed = True
+        
+        # Тест получения текущей еврейской даты
+        print("\nТест получения текущей еврейской даты:")
+        current_hebrew_date = hebcal.get_current_hebrew_date()
+        
+        if current_hebrew_date and "hebrew" in current_hebrew_date:
+            print(f"Текущая еврейская дата: {current_hebrew_date.get('hebrew', '')}")
+            print("Тест получения текущей еврейской даты: УСПЕШНО")
+        else:
+            print("Не удалось получить текущую еврейскую дату.")
+            print("Тест получения текущей еврейской даты: НЕУДАЧА")
+            all_tests_passed = False
+        
+        # Тест конвертации григорианской даты в еврейскую
+        print("\nТест конвертации григорианской даты в еврейскую:")
+        test_date = "2023-04-15"  # Пример даты
+        print(f"Конвертация даты: {test_date}")
+        
+        hebrew_date = hebcal.convert_date_to_hebrew(test_date)
+        
+        if hebrew_date and "hebrew" in hebrew_date:
+            print(f"Еврейская дата: {hebrew_date.get('hebrew', '')}")
+            print("Тест конвертации григорианской даты в еврейскую: УСПЕШНО")
+        else:
+            print("Не удалось конвертировать дату.")
+            print("Тест конвертации григорианской даты в еврейскую: НЕУДАЧА")
+            all_tests_passed = False
+        
+        # Тест получения праздников
+        print("\nТест получения еврейских праздников:")
+        current_year = datetime.date.today().year
+        print(f"Получение праздников на {current_year} год")
+        
+        holidays = hebcal.get_holidays_for_year(current_year)
+        
+        if holidays and "items" in holidays and len(holidays["items"]) > 0:
+            print(f"Получено праздников: {len(holidays['items'])}")
+            print(f"Пример праздника: {holidays['items'][0].get('title', '')}")
+            print("Тест получения еврейских праздников: УСПЕШНО")
+        else:
+            print("Не удалось получить информацию о праздниках.")
+            print("Тест получения еврейских праздников: НЕУДАЧА")
+            all_tests_passed = False
+        
+        # Тест получения времени Шаббата
+        print("\nТест получения времени Шаббата:")
+        # Используем координаты Москвы для примера
+        shabbat_times = hebcal.get_shabbat_times(latitude=55.7558, longitude=37.6173, tzid="Europe/Moscow")
+        
+        if shabbat_times and "items" in shabbat_times and len(shabbat_times["items"]) > 0:
+            print(f"Получено элементов: {len(shabbat_times['items'])}")
+            print("Тест получения времени Шаббата: УСПЕШНО")
+        else:
+            print("Не удалось получить информацию о времени Шаббата.")
+            print("Тест получения времени Шаббата: НЕУДАЧА")
+            all_tests_passed = False
+        
+        # Тест подсчета дней до события
+        print("\nТест подсчета дней до события:")
+        future_date = (datetime.date.today() + datetime.timedelta(days=30)).strftime('%Y-%m-%d')
+        print(f"Подсчет дней до даты: {future_date}")
+        
+        days = hebcal.days_until_event(future_date)
+        
+        if isinstance(days, int):
+            print(f"Дней до события: {days}")
+            print("Тест подсчета дней до события: УСПЕШНО")
+        else:
+            print("Не удалось подсчитать количество дней до события.")
+            print("Тест подсчета дней до события: НЕУДАЧА")
+            all_tests_passed = False
+        
+        # Тест форматирования еврейской даты
+        print("\nТест форматирования еврейской даты:")
+        formatted_date = hebcal.format_hebrew_date(current_hebrew_date)
+        
+        if formatted_date and isinstance(formatted_date, str) and len(formatted_date) > 0:
+            print(f"Форматированная дата: {formatted_date[:100]}...")
+            print("Тест форматирования еврейской даты: УСПЕШНО")
+        else:
+            print("Не удалось отформатировать еврейскую дату.")
+            print("Тест форматирования еврейской даты: НЕУДАЧА")
+            all_tests_passed = False
+        
+        # Тест форматирования праздников
+        print("\nТест форматирования праздников:")
+        formatted_holidays = hebcal.format_holidays(holidays)
+        
+        if formatted_holidays and isinstance(formatted_holidays, str) and len(formatted_holidays) > 0:
+            print(f"Форматированные праздники: {formatted_holidays[:100]}...")
+            print("Тест форматирования праздников: УСПЕШНО")
+        else:
+            print("Не удалось отформатировать праздники.")
+            print("Тест форматирования праздников: НЕУДАЧА")
+            all_tests_passed = False
+        
+        return all_tests_passed
+    
+    except Exception as e:
+        print(f"Ошибка при тестировании Hebcal API: {str(e)}")
+        print("Тест Hebcal API: НЕУДАЧА")
+        return False
+
 def main():
     print("=" * 50)
     print("Тестирование API для Sefaria ChatBot")
@@ -213,12 +325,16 @@ def main():
     # Тестирование OpenRouter API
     openrouter_success = test_openrouter_api()
     
+    # Тестирование Hebcal API
+    hebcal_success = test_hebcal_api()
+    
     # Итоги тестирования
     print("\n=== Итоги тестирования ===")
     print(f"Sefaria API: {'УСПЕШНО' if sefaria_success else 'НЕУДАЧА'}")
     print(f"OpenRouter API: {'УСПЕШНО' if openrouter_success else 'НЕУДАЧА'}")
+    print(f"Hebcal API: {'УСПЕШНО' if hebcal_success else 'НЕУДАЧА'}")
     
-    if sefaria_success and openrouter_success:
+    if sefaria_success and openrouter_success and hebcal_success:
         print("\nВсе тесты пройдены успешно! Вы можете запустить приложение.")
         return 0
     else:
@@ -227,6 +343,8 @@ def main():
             print("Проверьте результаты тестов выше для более подробной информации.")
         if not openrouter_success:
             print("\nТесты OpenRouter API не пройдены. Проверьте наличие API ключа и подключение к интернету.")
+        if not hebcal_success:
+            print("\nТесты Hebcal API не пройдены. Проверьте подключение к интернету и доступность API.")
         
         print("\nНекоторые тесты не пройдены. Рекомендуется исправить ошибки перед запуском приложения.")
         return 1
