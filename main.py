@@ -52,8 +52,39 @@ async def safe_reply(message: Message, text: str, parse_mode: str = "HTML", retr
 # Bot class (inherits logic from SefariaChatBot)
 # ────────────────────────────────────────────────────────────────────────────────
 class TelegramSefariaChatBot(SefariaChatBot):
+    """
+    Телеграм-бот для работы с еврейскими текстами и календарем.
+    Наследует логику от SefariaChatBot.
+    """
     def __init__(self):
         super().__init__()
+        
+    def _build_system_prompt(self) -> str:
+        """
+        Переопределяем метод _build_system_prompt для телеграм-бота.
+        
+        Returns:
+            str: Системный промпт для телеграм-бота
+        """
+        return super()._build_system_prompt() + """
+
+Дополнительные правила для Telegram-бота:
+1. Ответы должны быть хорошо структурированы для мобильного интерфейса.
+2. Используй HTML-форматирование для выделения важной информации.
+3. Разбивай длинные ответы на логические блоки с заголовками.
+"""
+    
+    def get_calendar_context(self, query: str) -> str:
+        """
+        Получает контекст с календарной информацией.
+        
+        Args:
+            query (str): Запрос пользователя
+            
+        Returns:
+            str: Контекст с календарной информацией
+        """
+        return self._get_calendar_context(query)
 
 
 # ────────────────────────────────────────────────────────────────────────────────

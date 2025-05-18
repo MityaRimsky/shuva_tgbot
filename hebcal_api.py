@@ -48,28 +48,97 @@ class HebcalAPI:
             "gd": gd,
             "g2h": 1,  # <-- crucial flag!
         }
-        return self._get_json(self.converter_url, params)
+        result = self._get_json(self.converter_url, params)
+        
+        return result
+
+    # Словарь для нормализации названий еврейских месяцев
+    HEBREW_MONTH_NORMALIZE = {
+        # Основные варианты
+        "nisan": "Nisan", "iyyar": "Iyyar", "sivan": "Sivan", 
+        "tamuz": "Tamuz", "tammuz": "Tamuz", "av": "Av", "elul": "Elul",
+        "tishrei": "Tishrei", "tishri": "Tishrei", "cheshvan": "Cheshvan", 
+        "heshvan": "Cheshvan", "kislev": "Kislev", "tevet": "Tevet", 
+        "shvat": "Shvat", "sh'vat": "Shvat", "adar": "Adar", 
+        "adar i": "Adar I", "adar 1": "Adar I", "adar ii": "Adar II", "adar 2": "Adar II",
+        
+        # Варианты с апострофом
+        "sh'vat": "Shvat", "adar i'": "Adar I", "adar ii'": "Adar II",
+    }
+
+    def normalize_hebrew_month(self, month: str) -> str:
+        """Нормализует название еврейского месяца к стандартному формату."""
+        if not month:
+            return ""
+        
+        # Приводим к нижнему регистру для поиска в словаре
+        month_lower = month.lower()
+        
+        # Проверяем, есть ли месяц в словаре нормализации
+        normalized = self.HEBREW_MONTH_NORMALIZE.get(month_lower)
+        if normalized:
+            return normalized
+        
+        # Если месяц не найден в словаре, возвращаем исходное значение
+        # с первой буквой в верхнем регистре
+        return month.capitalize()
 
     def convert_date_to_gregorian(self, hebrew_date: "dict | str") -> Dict[str, Any]:
         """Hebrew → Gregorian. Accepts dict {'hy','hm','hd'} or '5786 Nisan 15'."""
         params = {**self.default_params, "h2g": 1}
 
         if isinstance(hebrew_date, dict):
+            # Нормализуем название месяца
+            month = hebrew_date.get("hm", "")
+            normalized_month = self.normalize_hebrew_month(month)
+            
             params.update({
                 "hy": hebrew_date.get("hy"),
-                "hm": hebrew_date.get("hm"),
+                "hm": normalized_month,
                 "hd": hebrew_date.get("hd"),
             })
+            
+            # Добавляем подробное логирование
+            if month != normalized_month:
+                logger.info(f"Нормализация месяца: {month} -> {normalized_month}")
+                
         elif isinstance(hebrew_date, str):
             parts = hebrew_date.split()
             if len(parts) >= 3:
-                params.update({"hy": parts[0], "hm": parts[1], "hd": parts[2]})
+                # Нормализуем название месяца
+                month = parts[1]
+                normalized_month = self.normalize_hebrew_month(month)
+                
+                params.update({
+                    "hy": parts[0], 
+                    "hm": normalized_month, 
+                    "hd": parts[2]
+                })
+                
+                # Добавляем подробное логирование
+                if month != normalized_month:
+                    logger.info(f"Нормализация месяца: {month} -> {normalized_month}")
             else:
                 return {"error": "Неверный формат еврейской даты. Используйте 'ГОД МЕСЯЦ ДЕНЬ'."}
         else:
             return {"error": "Неверный тип данных для еврейской даты."}
 
-        return self._get_json(self.converter_url, params)
+        # Добавляем валидацию параметров перед отправкой запроса
+        if not params.get("hy") or not params.get("hm") or not params.get("hd"):
+            missing_params = []
+            if not params.get("hy"):
+                missing_params.append("год")
+            if not params.get("hm"):
+                missing_params.append("месяц")
+            if not params.get("hd"):
+                missing_params.append("день")
+                
+            return {"error": f"Отсутствуют обязательные параметры: {', '.join(missing_params)}"}
+
+        # Получаем результат от API
+        result = self._get_json(self.converter_url, params)
+        
+        return result
 
     # ---------------------------------------------------------------------
     # Holidays
