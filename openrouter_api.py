@@ -17,7 +17,7 @@ class OpenRouterAPI:
             "Content-Type": "application/json"
         }
     
-    def generate_response(self, prompt, context=None, model="meta-llama/llama-3.3-70b-instruct:free"):
+    def generate_response(self, prompt, context=None, model="microsoft/mai-ds-r1:free"):
         """
         Генерирует ответ на основе промпта и контекста с использованием указанной модели.
         
