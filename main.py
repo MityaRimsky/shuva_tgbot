@@ -128,8 +128,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             try:
                 await safe_reply(update.message, part, parse_mode="HTML")
             except Exception as e:
-                logger.warning(f"Ошибка при отправке HTML-сообщения: {e}. Повтор с plain text.")
-                await safe_reply(update.message, part, parse_mode=None)
+                # Логируем подробную информацию об ошибке HTML
+                if "Can't parse entities" in str(e) or "unmatched end tag" in str(e):
+                    logger.warning(f"Ошибка при отправке HTML-сообщения: {e}. Повтор с plain text.")
+                    # Удаляем все HTML теги для безопасной отправки
+                    import re
+                    clean_part = re.sub(r'<[^>]+>', '', part)
+                    await safe_reply(update.message, clean_part, parse_mode=None)
+                else:
+                    logger.warning(f"Ошибка при отправке сообщения: {e}. Повтор с plain text.")
+                    await safe_reply(update.message, part, parse_mode=None)
 
     except Exception as e:
         logger.exception(f"Ошибка в handle_message: {e}")

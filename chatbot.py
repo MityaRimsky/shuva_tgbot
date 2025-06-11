@@ -101,6 +101,85 @@ class SefariaChatBot:
         self.sefaria_api = SefariaAPI()
         self.hebcal_api = HebcalAPI()
         self.system_prompt = self._build_system_prompt()
+    
+    def _validate_and_fix_html(self, text: str) -> str:
+        """
+        Валидирует и исправляет HTML теги в тексте.
+        
+        Args:
+            text (str): Текст с потенциально некорректными HTML тегами
+            
+        Returns:
+            str: Текст с исправленными HTML тегами
+        """
+        try:
+            # Список разрешенных тегов
+            allowed_tags = ['b', 'i', 'u', 'blockquote']
+            
+            # Паттерн для поиска HTML тегов
+            tag_pattern = re.compile(r'<(/?)([a-zA-Z]+)([^>]*)>')
+            
+            # Стек для отслеживания открытых тегов
+            tag_stack = []
+            result = []
+            last_pos = 0
+            
+            for match in tag_pattern.finditer(text):
+                # Добавляем текст до тега
+                result.append(text[last_pos:match.start()])
+                
+                is_closing = bool(match.group(1))  # True если это закрывающий тег
+                tag_name = match.group(2).lower()
+                
+                # Проверяем, разрешен ли тег
+                if tag_name not in allowed_tags:
+                    # Удаляем неразрешенный тег
+                    logger.warning(f"Удален неразрешенный HTML тег: {match.group(0)}")
+                    last_pos = match.end()
+                    continue
+                
+                if is_closing:
+                    # Закрывающий тег
+                    if tag_stack and tag_stack[-1] == tag_name:
+                        # Правильное закрытие
+                        tag_stack.pop()
+                        result.append(f'</{tag_name}>')
+                    elif tag_stack:
+                        # Неправильное закрытие - исправляем
+                        correct_tag = tag_stack.pop()
+                        result.append(f'</{correct_tag}>')
+                        logger.warning(f"Исправлен неправильно закрытый тег: {match.group(0)} -> </{correct_tag}>")
+                    else:
+                        # Закрывающий тег без открывающего - удаляем
+                        logger.warning(f"Удален закрывающий тег без открывающего: {match.group(0)}")
+                else:
+                    # Открывающий тег
+                    tag_stack.append(tag_name)
+                    result.append(f'<{tag_name}>')
+                
+                last_pos = match.end()
+            
+            # Добавляем оставшийся текст
+            result.append(text[last_pos:])
+            
+            # Закрываем все незакрытые теги
+            while tag_stack:
+                unclosed_tag = tag_stack.pop()
+                result.append(f'</{unclosed_tag}>')
+                logger.warning(f"Добавлен недостающий закрывающий тег: </{unclosed_tag}>")
+            
+            fixed_text = ''.join(result)
+            
+            # Дополнительная проверка: удаляем пустые теги
+            empty_tag_pattern = re.compile(r'<([a-zA-Z]+)></\1>')
+            fixed_text = empty_tag_pattern.sub('', fixed_text)
+            
+            return fixed_text
+            
+        except Exception as e:
+            logger.error(f"Ошибка при валидации HTML: {e}", exc_info=True)
+            # В случае ошибки возвращаем текст без HTML тегов
+            return re.sub(r'<[^>]+>', '', text)
         
     def _build_system_prompt(self) -> str:
         """
@@ -118,9 +197,41 @@ class SefariaChatBot:
 3. Если не знаешь ответа, честно признай это.
 4. Приводи источники и цитаты, когда это уместно.
 5. Объясняй сложные концепции простым языком.
-6. Используй HTML-форматирование для структурирования ответа (<b>жирный</b>, <i>курсив</i>, <u>подчеркнутый</u>).
-7. Не используй Markdown-форматирование.
-8. Добавляй предупреждение в конце.
+6. Не используй Markdown-форматирование. Запрещено использовать символы и конструкции, связанные с Markdown, включая: #, *, _, `, ~~, > и т.д.
+7. Используй ТОЛЬКО HTML-форматирование для структурирования ответа.
+8. СТРОГО соблюдай правила HTML: каждый открытый тег должен быть правильно закрыт тем же тегом.
+9. Разрешенные HTML теги: <b></b> (жирный), <i></i> (курсив), <u></u> (подчеркнутый), <blockquote></blockquote> (цитата).
+10. ЗАПРЕЩЕНО смешивать теги: если открыл <i>, закрывай </i>, а НЕ </u> или </b>.
+11. Проверяй каждый HTML тег перед отправкой ответа.
+12. Добавляй предупреждение в конце.
+
+ПРИМЕРЫ ПРАВИЛЬНОГО HTML:
+✅ <b>Правильно:</b> <i>курсив</i> и <u>подчеркнутый</u>
+✅ <b>Моисей (Моше рабейну)</b> — центральный пророк
+✅ <i>Неопалимая купина</i> — чудесный куст
+
+ПРИМЕРЫ НЕПРАВИЛЬНОГО HTML:
+❌ <i>текст</u> — НЕПРАВИЛЬНО! Открыт <i>, а закрыт </u>
+❌ <b>текст</i> — НЕПРАВИЛЬНО! Открыт <b>, а закрыт </i>
+❌ <u>текст</b> — НЕПРАВИЛЬНО! Открыт <u>, а закрыт </b>
+
+Формат ответа для вопросов не свзанных с датами, конвертацией и календарем:
+[Основной ответ]
+[Пояснения к терминам]
+[Источники и справки]
+
+Пример:
+Вопрос: "Что означает концепция тиккун олам?"
+Ответ: 
+"Тиккун олам (букв. 'исправление мира') — это концепция... [развёрнутое объяснение]
+
+Пояснения:
+- Тиккун олам: идея человеческого участия в совершенствовании мира
+- Цдука: еврейская концепция благотворительности
+
+Источники:
+- Упоминается в Мишне (Гитин 4:5)
+- Развита лурианской каббалой (Исаак Лурия, Цфат, XVI век)"
 
 
 Когда отвечаешь на вопросы о еврейских законах (галахе):
@@ -1057,7 +1168,10 @@ class SefariaChatBot:
             # Генерируем ответ с помощью модели
             response = self.openrouter_api.generate_response(prompt=query, context=context)
             
-            return response
+            # Валидируем и исправляем HTML теги в ответе
+            validated_response = self._validate_and_fix_html(response)
+            
+            return validated_response
         except Exception as e:
             logger.error(f"Ошибка при обработке запроса: {e}", exc_info=True)
             return f"Произошла ошибка при обработке запроса: {str(e)}"
