@@ -17,7 +17,7 @@ class OpenRouterAPI:
             "Content-Type": "application/json"
         }
     
-    def generate_response(self, prompt, context=None, model="tngtech/deepseek-r1t2-chimera:free"):
+    def generate_response(self, prompt, context=None, model="z-ai/glm-4.5-air:free"):
         """
         Генерирует ответ на основе промпта и контекста с использованием указанной модели.
         
