@@ -17,7 +17,7 @@ class OpenRouterAPI:
             "Content-Type": "application/json"
         }
     
-    def generate_response(self, prompt, context=None, model="z-ai/glm-4.5-air:free"):
+    def generate_response(self, prompt, context=None, model="openai/gpt-5-mini"):
         """
         Генерирует ответ на основе промпта и контекста с использованием указанной модели.
         
